@@ -118,14 +118,10 @@ module Net
 				# ok...
 			when 2
 				password = @options[:password] or raise 'Need to authenticate but no password given'
-				p password
 				challenge = socket.read CHALLENGE_SIZE
-				p challenge
 				response = Cipher::DES.encrypt password, challenge
-				p response
 				socket.write response
 				ok = socket.read(4).to_s.unpack('N')[0]
-				p ok
 				raise 'Unable to authenticate - %p' % ok unless ok == 0
 			else
 				raise 'Unknown authentication scheme - %d' % auth
