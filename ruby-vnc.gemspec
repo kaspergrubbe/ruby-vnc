@@ -16,8 +16,8 @@ Gem::Specification.new do |s|
 	# none yet
 	#s.executables = ['oletool']
 	s.files  = ['Rakefile', 'README', 'COPYING', 'ChangeLog', 'data/keys.yaml']
-	s.files += FileList['lib/**/*.rb']
-	s.files += FileList['spec/*_spec.rb']
+	s.files += Dir.glob('lib/**/*.rb')
+	s.files += Dir.glob('spec/*_spec.rb')
 	# is there an rspec equivalent?
 	#s.test_files = FileList['test/test_*.rb']
 
