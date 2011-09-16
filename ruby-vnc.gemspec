@@ -22,7 +22,7 @@ Gem::Specification.new do |s|
 	#s.test_files = FileList['test/test_*.rb']
 
 	s.has_rdoc = true
-	s.extra_rdoc_files = ['README']
+	s.extra_rdoc_files = ['README', 'ChangeLog']
 	s.rdoc_options += [
 		'--main', 'README',
 		'--title', "#{PKG_NAME} documentation",
