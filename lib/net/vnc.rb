@@ -47,8 +47,8 @@ module Net
 
 			def refresh
 				packet = 0.chr * 6
-				packet[0] = 5
-				packet[1] = button
+				packet[0] = 5.chr
+				packet[1] = button.chr
 				packet[2, 2] = [x].pack 'n'
 				packet[4, 2] = [y].pack 'n'
 				@vnc.socket.write packet
@@ -147,12 +147,12 @@ module Net
 		# this types +text+ on the server
 		def type text, options={}
 			packet = 0.chr * 8
-			packet[0] = 4
+			packet[0] = 4.chr
 			text.split(//).each do |char|
 				packet[7] = char[0]
-				packet[1] = 1
+				packet[1] = 1.chr
 				socket.write packet
-				packet[1] = 0
+				packet[1] = 0.chr
 				socket.write packet
 			end
 			wait options
@@ -191,20 +191,20 @@ module Net
 
 		def key_down which, options={}
 			packet = 0.chr * 8
-			packet[0] = 4
+			packet[0] = 4.chr
 			key_code = get_key_code which
 			packet[4, 4] = [key_code].pack('N')
-			packet[1] = 1
+			packet[1] = 1.chr
 			socket.write packet
 			wait options
 		end
 
 		def key_up which, options={}
 			packet = 0.chr * 8
-			packet[0] = 4
+			packet[0] = 4.chr
 			key_code = get_key_code which
 			packet[4, 4] = [key_code].pack('N')
-			packet[1] = 0
+			packet[1] = 0.chr
 			socket.write packet
 			wait options
 		end
