@@ -10,9 +10,8 @@ Gem::Specification.new do |s|
 	s.description = %q{A library which implements the client VNC protocol to control VNC servers.}
 	s.authors = ['Charles Lowe']
 	s.email = %q{aquasync@gmail.com}
-	# not yet registered
-	#s.homepage = %q{http://code.google.com/p/ruby-vnc}
-	#s.rubyforge_project = %q{ruby-vnc}
+	s.homepage = %q{http://code.google.com/p/ruby-vnc}
+	s.rubyforge_project = %q{ruby-vnc}
 
 	# none yet
 	#s.executables = ['oletool']
