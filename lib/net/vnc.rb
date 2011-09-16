@@ -158,6 +158,39 @@ module Net
       wait options
     end
 
+    SHIFTED_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+{}|:"<>?'
+    KEY_PRESS_CHARS = {
+      "\n" => :return,
+      "\t" => :tab
+    }
+
+    # This types +text+ on the server, but it holds the shift key down when necessary.
+    # It will also execute key_press for tabs and returns.
+    def type_string text, options={}
+      shift_key_down = nil
+
+      text.each_char do |char|
+        key_to_press = KEY_PRESS_CHARS[char]
+        unless key_to_press.nil?
+          key_press key_to_press
+        else
+          key_needs_shift = SHIFTED_CHARS.include? char
+
+          if shift_key_down.nil? || shift_key_down != key_needs_shift
+            if key_needs_shift
+              key_down :shift
+            else
+              key_up :shift
+            end
+          end
+
+          type char
+          shift_key_down = key_needs_shift
+        end
+      end
+      wait options
+    end
+
     # this takes an array of keys, and successively holds each down then lifts them up in
     # reverse order.
     # FIXME: should wait. can't recurse in that case.
