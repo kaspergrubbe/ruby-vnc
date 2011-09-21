@@ -169,7 +169,7 @@ module Cipher
 				pc1m = (0...56).map do |j|
 					l = PC1[j]
 					m = l & 07
-					(key[l >> 3] & BYTEBIT[m]) != 0 ? 1 : 0;
+					(key[l >> 3].ord & BYTEBIT[m]) != 0 ? 1 : 0;
 				end
 
 				16.times do |i|
