@@ -11,11 +11,11 @@ module Net
 	#
 	# Sample usage:
 	#
-	#	  # launch xclock on localhost. note that there is an xterm in the top-left
+	#   # launch xclock on localhost. note that there is an xterm in the top-left
 	#   Net::VNC.open 'localhost:0', :shared => true, :password => 'mypass' do |vnc|
-	#     vnc.pointer_move 10, 10
-	#     vnc.type 'xclock'
-	#     vnc.key_press :return
+	#		vnc.pointer_move 10, 10
+	#		vnc.type 'xclock'
+	#		vnc.key_press :return
 	#   end
 	#
 	# = TODO
@@ -47,8 +47,8 @@ module Net
 
 			def refresh
 				packet = 0.chr * 6
-				packet[0] = 5
-				packet[1] = button
+				packet[0] = 5.chr
+				packet[1] = button.chr
 				packet[2, 2] = [x].pack 'n'
 				packet[4, 2] = [y].pack 'n'
 				@vnc.socket.write packet
@@ -147,13 +147,46 @@ module Net
 		# this types +text+ on the server
 		def type text, options={}
 			packet = 0.chr * 8
-			packet[0] = 4
+			packet[0] = 4.chr
 			text.split(//).each do |char|
 				packet[7] = char[0]
-				packet[1] = 1
+				packet[1] = 1.chr
 				socket.write packet
-				packet[1] = 0
+				packet[1] = 0.chr
 				socket.write packet
+			end
+			wait options
+		end
+
+		SHIFTED_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ~!@#$%^&*()_+{}|:"<>?'
+		KEY_PRESS_CHARS = {
+			"\n" => :return,
+			"\t" => :tab
+		}
+
+		# This types +text+ on the server, but it holds the shift key down when necessary.
+		# It will also execute key_press for tabs and returns.
+		def type_string text, options={}
+			shift_key_down = nil
+
+			text.each_char do |char|
+				key_to_press = KEY_PRESS_CHARS[char]
+				unless key_to_press.nil?
+					key_press key_to_press
+				else
+					key_needs_shift = SHIFTED_CHARS.include? char
+
+					if shift_key_down.nil? || shift_key_down != key_needs_shift
+						if key_needs_shift
+							key_down :shift
+						else
+							key_up :shift
+						end
+					end
+
+					type char
+					shift_key_down = key_needs_shift
+				end
 			end
 			wait options
 		end
@@ -191,20 +224,20 @@ module Net
 
 		def key_down which, options={}
 			packet = 0.chr * 8
-			packet[0] = 4
+			packet[0] = 4.chr
 			key_code = get_key_code which
 			packet[4, 4] = [key_code].pack('N')
-			packet[1] = 1
+			packet[1] = 1.chr
 			socket.write packet
 			wait options
 		end
 
 		def key_up which, options={}
 			packet = 0.chr * 8
-			packet[0] = 4
+			packet[0] = 4.chr
 			key_code = get_key_code which
 			packet[4, 4] = [key_code].pack('N')
-			packet[1] = 0
+			packet[1] = 0.chr
 			socket.write packet
 			wait options
 		end
