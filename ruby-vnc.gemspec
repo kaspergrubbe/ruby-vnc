@@ -11,6 +11,7 @@ Gem::Specification.new do |s|
 	s.authors = ['Charles Lowe']
 	s.email = %q{aquasync@gmail.com}
 	s.homepage = %q{http://code.google.com/p/ruby-vnc}
+  s.license = %q{MIT}
 	s.rubyforge_project = %q{ruby-vnc}
 
 	# none yet
