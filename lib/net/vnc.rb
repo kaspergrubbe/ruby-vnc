@@ -149,7 +149,7 @@ module Net
 			packet = 0.chr * 8
 			packet[0] = 4.chr
 			text.split(//).each do |char|
-				packet[7] = char[0]
+				packet[7] = char.ord
 				packet[1] = 1.chr
 				socket.write packet
 				packet[1] = 0.chr
