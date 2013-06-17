@@ -279,7 +279,7 @@ module Net
 			case type
 			when 3 # ServerCutText
 				socket.read 3 # discard padding bytes
-				len = socket.read(4).unpack('N').ord
+				len = socket.read(4).unpack('N')[0]
 				@mutex.synchronize { @clipboard = socket.read len }
 			else
 				raise NotImplementedError, 'unhandled server packet type - %d' % type
