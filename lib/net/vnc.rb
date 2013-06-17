@@ -279,7 +279,7 @@ module Net
 			case type
 			when 3 # ServerCutText
 				socket.read 3 # discard padding bytes
-				len = socket.read(4).unpack('N')[0]
+				len = socket.read(4).unpack('N').ord
 				@mutex.synchronize { @clipboard = socket.read len }
 			else
 				raise NotImplementedError, 'unhandled server packet type - %d' % type
@@ -292,7 +292,7 @@ module Net
 				begin
 					break if @packet_reading_state != :loop
 					next unless IO.select [socket], nil, nil, 2
-					type = socket.read(1)[0]
+					type = socket.read(1).ord
 					read_packet type
 				rescue
 					warn "exception in packet_reading_thread: #{$!.class}:#{$!}"
