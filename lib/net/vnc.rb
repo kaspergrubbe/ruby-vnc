@@ -72,6 +72,7 @@ module Net
 
 		def initialize display=':0', options={}
 			@server = 'localhost'
+			@server_port = options[:port] || BASE_PORT
 			if display =~ /^(.*)(:\d+)$/
 				@server, display = $1, $2
 			end
@@ -99,7 +100,7 @@ module Net
 		end
 
 		def port
-			BASE_PORT + @display
+			@server_port + @display
 		end
 
 		def connect
