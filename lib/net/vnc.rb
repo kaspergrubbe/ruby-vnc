@@ -133,9 +133,12 @@ module Net
 			socket.write((options[:shared] ? 1 : 0).chr)
 
 			# ServerInitialisation
+			framebuffer_width  = socket.read(2).to_s.unpack('n')[0].to_i
+			framebuffer_height = socket.read(2).to_s.unpack('n')[0].to_i
+
 			# TODO: parse this.
-			socket.read(20)
-			data = socket.read(4)
+			pixel_format = socket.read(16)
+
 			# read this many bytes in chunks of 20
 			size = data.to_s.unpack('N')[0]
 			while size > 0
