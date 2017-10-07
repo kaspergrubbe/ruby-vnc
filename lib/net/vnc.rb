@@ -12,6 +12,8 @@ module Net
 	# Sample usage:
 	#
 	#	  # launch xclock on localhost. note that there is an xterm in the top-left
+	#
+	#   require 'net/vnc'
 	#   Net::VNC.open 'localhost:0', :shared => true, :password => 'mypass' do |vnc|
 	#     vnc.pointer_move 10, 10
 	#     vnc.type 'xclock'
