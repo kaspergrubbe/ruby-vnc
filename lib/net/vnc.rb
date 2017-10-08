@@ -12,6 +12,8 @@ module Net
 	# Sample usage:
 	#
 	#	  # launch xclock on localhost. note that there is an xterm in the top-left
+	#
+	#   require 'net/vnc'
 	#   Net::VNC.open 'localhost:0', :shared => true, :password => 'mypass' do |vnc|
 	#     vnc.pointer_move 10, 10
 	#     vnc.type 'xclock'
@@ -131,17 +133,21 @@ module Net
 			socket.write((options[:shared] ? 1 : 0).chr)
 
 			# ServerInitialisation
+			framebuffer_width  = socket.read(2).to_s.unpack('n')[0].to_i
+			framebuffer_height = socket.read(2).to_s.unpack('n')[0].to_i
+
 			# TODO: parse this.
-			socket.read(20)
-			data = socket.read(4)
-			# read this many bytes in chunks of 20
-			size = data.to_s.unpack('N')[0]
-			while size > 0
-				len = [20, size].min
-				# this is the hostname, and other stuff i think...
-				socket.read(len)
-				size -= len
-			end
+			pixel_format = socket.read(16)
+
+			# read the name in byte chunks of 20
+			name_length = socket.read(4).to_s.unpack('N')[0]
+			hostname = [].tap do |it|
+				while name_length > 0
+					len = [20, name_length].min
+					it << socket.read(len)
+					name_length -= len
+				end
+			end.join
 		end
 
 		# this types +text+ on the server
