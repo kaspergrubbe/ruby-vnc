@@ -144,6 +144,57 @@ module Net
 			end
 		end
 
+		# FramebufferUpdateRequest
+		# https://github.com/rfbproto/rfbproto/blob/master/rfbproto.rst#framebufferupdaterequest
+		#
+		# No. of bytes	Type	[Value]	Description
+		# 					1	U8			3	message-type
+		# 					1	U8	 		incremental
+		# 					2	U16	 		x-position
+		# 					2	U16	 		y-position
+		# 					2	U16	 		width
+		# 					2	U16	 		height
+
+		# FramebufferUpdate
+		# https://github.com/rfbproto/rfbproto/blob/master/rfbproto.rst#framebufferupdate
+		#
+		#
+		def screenshot!
+			# Write FramebufferUpdateRequest
+			packet = 0.chr * 10
+			packet[0] = 3.chr
+
+			# incremental
+			packet[1] = 0.chr
+
+			# x, y
+			packet[2,2] = [0].pack('n')
+			packet[4,2] = [0].pack('n')
+
+			# width, height
+			packet[6,2] = [1942].pack('n')
+			packet[8,2] = [1544].pack('n')
+
+			socket.write packet
+			wait options
+
+			# Read FramebufferUpdate
+			message_type         = socket.read(1).ord #.unpack('N')[0]
+			padding              = socket.read(1) #ignore
+			number_of_rectangles = socket.read(2).unpack('n')
+
+			# number_of_rectangles[0].times do |rectangle|
+			# 	# read pixels
+			# 	x = socket.read(2).unpack('n')[0].to_i
+			# 	y = socket.read(2).unpack('n')[0].to_i
+			# 	w = socket.read(2).unpack('n')[0].to_i
+			# 	h = socket.read(2).unpack('n')[0].to_i
+			# 	e = socket.read(4) #.unpack('l')
+
+			# 	#puts "<- (#{x},#{y}) (w=#{w};h=#{h})"
+			# end
+		end
+
 		# this types +text+ on the server
 		def type text, options={}
 			packet = 0.chr * 8
