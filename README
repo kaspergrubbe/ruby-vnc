@@ -1,4 +1,4 @@
-# Introduction
+= Introduction
 
 The ruby-vnc library provides for simple rfb-protocol based control of a
 VNC server. This can be used, eg, to automate applications (sometimes there
@@ -7,16 +7,16 @@ is no better way), or script some sort of interaction.
 Being VNC based gives it the advantage of being able to be run against
 servers on any platform.
 
-The primary documentation is for the `Net::VNC` class.
+The primary documentation is for the Net::VNC class.
 
-# Thanks
+= Thanks
 
 Code borrows a lot from Tim Waugh's excellent rfbplaymacro. So far all it
 really offers on top of that is access to the host clipboard, and the ease
 with which it can be scripted, ie taking conditional actions based on the
 contents thereof.
 
-# TODO
+= TODO
 
 * Having the ability to take and analyse screen dumps would be useful.
 
