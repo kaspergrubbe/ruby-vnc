@@ -263,6 +263,21 @@ module Net
 			blue_shift       = readU8(socket.read(1))
 			socket.read(3) # padding
 
+			@screen = ScreenState.new(
+				framebuffer_width,
+				framebuffer_height,
+				bits_per_pixel,
+				depth,
+				big_endian_flag,
+				true_colour_flag,
+				red_max,
+				red_shift,
+				green_max,
+				green_shift,
+				blue_max,
+				blue_shift,
+			)
+
 			hostname_length    = readU32(socket.read(4))
 			hostname           = socket.read(hostname_length)
 		end
