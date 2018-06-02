@@ -102,6 +102,34 @@ module Net
 			BASE_PORT + @display
 		end
 
+		def readU8(data)
+			data.unpack('C')[0]
+		end
+
+		def writeU8(data)
+			data.chr
+		end
+
+		def readU16(data)
+			data.unpack('n')[0]
+		end
+
+		def writeU16(data)
+			[data].pack('n')
+		end
+
+		def readU32(data)
+			data.unpack('N')[0]
+		end
+
+		def writeU32(data)
+			[data].pack('N')
+		end
+
+		def readS32(data)
+			data.unpack('l')[0]
+		end
+
 		def connect
 			@socket = TCPSocket.open server, port
 			unless socket.read(12) =~ /^RFB (\d{3}.\d{3})\n$/
@@ -128,7 +156,7 @@ module Net
 			end
 
 			# ClientInitialisation
-			socket.write((options[:shared] ? 1 : 0).chr)
+			socket.write(writeU8(options[:shared] ? 1 : 0))
 
 			# ServerInitialisation
 			# TODO: parse this.
@@ -279,8 +307,8 @@ module Net
 			case type
 			when 3 # ServerCutText
 				socket.read 3 # discard padding bytes
-				len = socket.read(4).unpack('N')[0]
-				@mutex.synchronize { @clipboard = socket.read len }
+				len = readU32(socket.read(4))
+				@mutex.synchronize { @clipboard = socket.read(len) }
 			else
 				raise NotImplementedError, 'unhandled server packet type - %d' % type
 			end
@@ -292,7 +320,7 @@ module Net
 				begin
 					break if @packet_reading_state != :loop
 					next unless IO.select [socket], nil, nil, 2
-					type = socket.read(1)[0]
+					type = readU8(socket.read(1))
 					read_packet type
 				rescue
 					warn "exception in packet_reading_thread: #{$!.class}:#{$!}"
