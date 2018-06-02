@@ -108,21 +108,62 @@ module Net
 				raise 'invalid server response'
 			end
 			@server_version = $1
-			socket.write "RFB 003.003\n"
-			data = socket.read(4)
-			auth = data.to_s.unpack('N')[0]
-			case auth
+			socket.write "RFB 003.008\n"
+
+			number_of_security_types = readU8(socket.read(1))
+			security_types = []
+			number_of_security_types.times do
+				security_types << readU8(socket.read(1))
+			end
+
+			security_type = 0
+			if security_types.include?(1)
+				# No password
+				security_type = 1
+				socket.write(writeU8(1))
+			elsif security_types.include?(2)
+				# Use password
+				security_type = 2
+				socket.write(writeU8(2))
+			else
+				# If number-of-security-types is zero, then for some reason the connection failed
+				reason_length = readU32(socket.read(4))
+				reason_string = "".tap do |it|
+					reason_length.times do |chr|
+						it << U8(socket.read(1))
+					end
+				end
+				raise "Invalid security type: #{reason_string}"
+			end
+
+			case security_type
 			when 0, nil
 				raise 'connection failed'
 			when 1
 				# ok...
 			when 2
 				password = @options[:password] or raise 'Need to authenticate but no password given'
-				challenge = socket.read CHALLENGE_SIZE
-				response = Cipher::DES.encrypt password, challenge
-				socket.write response
-				ok = socket.read(4).to_s.unpack('N')[0]
-				raise 'Unable to authenticate - %p' % ok unless ok == 0
+				challenge = socket.read(CHALLENGE_SIZE)
+				response = Cipher::DES.encrypt(password, challenge)
+				socket.write(response)
+
+				security_result = readU32(socket.read(4))
+				case security_result
+				when 0
+					# OK
+				when 1
+					# If unsuccessful, the server sends a string describing the reason for
+   				# the failure, and then closes the connection:
+					reason_length = readU32(socket.read(4))
+					reason_string = "".tap do |it|
+						reason_length.times do |chr|
+							it << U8(socket.read(1))
+						end
+					end
+					raise "Unable to authenticate - failed\n#{reason_string}"
+				else
+					raise "Random failure - #{security_result}"
+				end
 			else
 				raise 'Unknown authentication scheme - %d' % auth
 			end
