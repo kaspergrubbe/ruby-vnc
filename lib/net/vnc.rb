@@ -220,17 +220,23 @@ module Net
 			socket.write((options[:shared] ? 1 : 0).chr)
 
 			# ServerInitialisation
-			# TODO: parse this.
-			socket.read(20)
-			data = socket.read(4)
-			# read this many bytes in chunks of 20
-			size = data.to_s.unpack('N')[0]
-			while size > 0
-				len = [20, size].min
-				# this is the hostname, and other stuff i think...
-				socket.read(len)
-				size -= len
-			end
+			framebuffer_width  = readU16(socket.read(2))
+			framebuffer_height = readU16(socket.read(2))
+
+			bits_per_pixel   = readU8(socket.read(1))
+			depth            = readU8(socket.read(1))
+			big_endian_flag  = readU8(socket.read(1))
+			true_colour_flag = readU8(socket.read(1))
+			red_max          = readU16(socket.read(2))
+			green_max        = readU16(socket.read(2))
+			blue_max         = readU16(socket.read(2))
+			red_shift        = readU8(socket.read(1))
+			green_shift      = readU8(socket.read(1))
+			blue_shift       = readU8(socket.read(1))
+			socket.read(3) # padding
+
+			hostname_length    = readU32(socket.read(4))
+			hostname           = socket.read(hostname_length)
 		end
 
 		# FramebufferUpdateRequest
