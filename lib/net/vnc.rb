@@ -55,6 +55,94 @@ module Net
 			end
 		end
 
+		class ScreenState
+			attr_reader :width,
+			            :height,
+			            :bits_per_pixel,
+			            :bytes_per_pixel,
+			            :depth,
+			            :big_endian_flag,
+			            :true_colour_flag,
+			            :red_max,
+			            :red_shift,
+			            :green_max,
+			            :green_shift,
+			            :blue_max,
+			            :blue_shift
+
+			def initialize(width, height, bits_per_pixel, depth, big_endian_flag, true_colour_flag, red_max, red_shift, green_max, green_shift, blue_max, blue_shift)
+			 	@width            = width
+			 	@height           = height
+			 	@bits_per_pixel   = bits_per_pixel
+			  @bytes_per_pixel  = bits_per_pixel / 8
+			  @depth            = depth
+			  @big_endian_flag  = case big_endian_flag
+			  										when 0
+			  											false
+			  										else
+			  											true
+			  										end
+			  @true_colour_flag = case true_colour_flag
+			  										when 0
+			  											false
+			  										else
+			  											true
+			  										end
+			  @red_max          = red_max
+			  @red_shift        = red_shift
+			  @green_max        = green_max
+			  @green_shift      = green_shift
+			  @blue_max         = blue_max
+			  @blue_shift       = blue_shift
+
+			  @pixels           = []
+			  @width.times do |i|
+			  	@pixels << [Pixel.new] * @height
+			  end
+
+			  @pixels.size == width
+			  @pixels[0].size == height
+			end
+
+			def set_pixel(x, y, pixel_bytes)
+				pixel = pixel_bytes[0] & 0xFF | pixel_bytes[1] << 8 | pixel_bytes[2] << 16 | pixel_bytes[3] << 24;
+				red   = ((pixel >> red_shift)   & red_max)
+				green = ((pixel >> green_shift) & green_max)
+				blue  = ((pixel >> blue_shift)  & blue_max)
+
+				begin
+					@pixels[x][y].update!(red, green, blue)
+					@pixels[x][y]
+				rescue
+					require 'pry'; binding.pry
+				end
+			end
+
+			def get_pixel(x, y)
+				@pixels[x][y]
+			end
+		end
+
+		class Pixel
+			attr_reader :red, :green, :blue
+
+			def initialize
+				@red   = nil
+				@green = nil
+				@blue  = nil
+			end
+
+			def update!(red, green, blue)
+				@red   = red
+				@green = green
+				@blue  = blue
+			end
+
+			def to_hex
+				"#" + [self.red, self.green, self.blue].map{|c| c.to_s(16).rjust(2, '0').upcase}.join
+			end
+		end
+
 		BASE_PORT = 5900
 		CHALLENGE_SIZE = 16
 		DEFAULT_OPTIONS = {
@@ -68,7 +156,7 @@ module Net
 			super or raise ArgumentError.new('Invalid key name - %s' % key)
 		end
 
-		attr_reader :server, :display, :options, :socket, :pointer
+		attr_reader :server, :display, :options, :socket, :pointer, :screen
 
 		def initialize display=':0', options={}
 			@server = 'localhost'
@@ -78,6 +166,7 @@ module Net
 			@display = display[1..-1].to_i
 			@options = DEFAULT_OPTIONS.merge options
 			@clipboard = nil
+			@screen = nil
 			@pointer = PointerState.new self
 			@mutex = Mutex.new
 			connect
@@ -154,45 +243,38 @@ module Net
 		# 					2	U16	 		y-position
 		# 					2	U16	 		width
 		# 					2	U16	 		height
+		def read_rectangle
+			{
+				x:        readU16(socket.read(2)),
+				y:        readU16(socket.read(2)),
+				width:    readU16(socket.read(2)),
+				height:   readU16(socket.read(2)),
+				encoding: readS32(socket.read(4)),
+			}
+		end
 
 		# FramebufferUpdate
 		# https://github.com/rfbproto/rfbproto/blob/master/rfbproto.rst#framebufferupdate
 		#
-		#
 		def screenshot!
-			# Write FramebufferUpdateRequest
 			packet = 0.chr * 10
-			packet[0] = 3.chr
+
+			# Write FramebufferUpdateRequest
+			packet[0] = writeU8(3)
 
 			# incremental
-			packet[1] = 0.chr
+			packet[1] = writeU8(0)
 
 			# x, y
-			packet[2,2] = [0].pack('n')
-			packet[4,2] = [0].pack('n')
+			packet[2,2] = writeU16(0)
+			packet[4,2] = writeU16(0)
 
 			# width, height
-			packet[6,2] = [1942].pack('n')
-			packet[8,2] = [1544].pack('n')
+			packet[6,2] = writeU16(self.screen.width)
+			packet[8,2] = writeU16(self.screen.height)
+			socket.write(packet)
 
-			socket.write packet
 			wait options
-
-			# Read FramebufferUpdate
-			message_type         = socket.read(1).ord #.unpack('N')[0]
-			padding              = socket.read(1) #ignore
-			number_of_rectangles = socket.read(2).unpack('n')
-
-			# number_of_rectangles[0].times do |rectangle|
-			# 	# read pixels
-			# 	x = socket.read(2).unpack('n')[0].to_i
-			# 	y = socket.read(2).unpack('n')[0].to_i
-			# 	w = socket.read(2).unpack('n')[0].to_i
-			# 	h = socket.read(2).unpack('n')[0].to_i
-			# 	e = socket.read(4) #.unpack('l')
-
-			# 	#puts "<- (#{x},#{y}) (w=#{w};h=#{h})"
-			# end
 		end
 
 		# this types +text+ on the server
@@ -328,6 +410,32 @@ module Net
 
 		def read_packet type
 			case type
+			when 0 # FramebufferUpdate
+				socket.read(1) # discard padding bytes
+				number_of_rectangles = readU16(socket.read(2))
+
+				number_of_rectangles.times do |i|
+					rectangle = read_rectangle
+
+					case rectangle[:encoding]
+					when 0 # RAW
+						x1 = rectangle[:x]
+						y1 = rectangle[:y]
+
+						x2 = rectangle[:x] + rectangle[:width] - 1
+						y2 = rectangle[:y] + rectangle[:height] - 1
+
+						raw_pixels = socket.read(rectangle[:width]*rectangle[:height]*self.screen.bytes_per_pixel).chars.map{|p| readU8(p)}.each_slice(4)
+
+						(y1..y2).each do |y|
+							(x1..x2).each do |x|
+								pixel = @screen.set_pixel(x, y, raw_pixels.next)
+							end
+						end
+					else
+						raise NotImplementedError
+					end
+				end
 			when 3 # ServerCutText
 				socket.read 3 # discard padding bytes
 				len = socket.read(4).unpack('N')[0]
