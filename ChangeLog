@@ -1,3 +1,7 @@
+== Unreleased:
+
+- Added a project Gemfile
+
 == 1.1.0 / 2012-06-03
 
 - Fixes to support ruby 1.9 (jedi4ever & codemonkeyjohn).
