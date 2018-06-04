@@ -53,89 +53,89 @@ describe 'Cipher::DES' do
 
 	describe '(private class methods)' do
 		it 'can prepare keys for encryption and decryption' do
-			DATA.each do |hex_key, mode, stage1, stage2, expect|
+			DATA.each do |hex_key, mode, stage1, stage2, expected_value|
 				key = [hex_key[2..-1]].pack('H*')
-				DES.send(:prepare_key_stage1, key, mode).should == stage1
-				DES.send(:prepare_key_stage2, stage1).should == stage2
+				expect(DES.send(:prepare_key_stage1, key, mode)).to eq stage1
+				expect(DES.send(:prepare_key_stage2, stage1)).to eq stage2
 			end
 		end
 
 		it 'can prepare perform a DES round on a block of data' do
-			DATA.each do |hex_key, mode, stage1, stage2, expect|
-				DES.send(:desfunc, [0, 0], stage2).should == expect
+			DATA.each do |hex_key, mode, stage1, stage2, expected_value|
+				expect(DES.send(:desfunc, [0, 0], stage2)).to eq expected_value
 			end
 		end
 	end
 
 	describe '#initialize' do
 		it 'can create a DES object from a key and a mode' do
-			hex_key, mode, stage1, stage2, expect = DATA[0]
+			hex_key, mode, stage1, stage2, expected_value = DATA[0]
 			key = [hex_key[2..-1]].pack('H*')
 			des = DES.new key, mode
-			des.key.should == key
-			des.mode.should == mode
-			des.instance_variable_get(:@buf).should == ''
-			des.instance_variable_get(:@keys).should == stage2
+			expect(des.key).to eq key
+			expect(des.mode).to eq mode
+			expect(des.instance_variable_get(:@buf)).to eq ''
+			expect(des.instance_variable_get(:@keys)).to eq stage2
 		end
 
 		it 'will reject invalid modes' do
-			lambda { DES.new 'key', :encryptify }.should raise_error(ArgumentError)
+			expect { DES.new 'key', :encryptify }.to raise_error(ArgumentError)
 		end
 
 		it 'expands or truncates the key to 8 bytes' do
-			DES.new('my-really-long-key', :encrypt).key.should == 'my-reall'
-			DES.new('key', :encrypt).key.should == "key\000\000\000\000\000"
+			expect(DES.new('my-really-long-key', :encrypt).key).to eq 'my-reall'
+			expect(DES.new('key', :encrypt).key).to eq "key\000\000\000\000\000"
 		end
 	end
 
 	describe '#update' do
 		before :each do
-			hex_key, mode, stage1, stage2, @expect = DATA[0]
+			hex_key, mode, stage1, stage2, @expected_value = DATA[0]
 			key = [hex_key[2..-1]].pack('H*')
 			@des = DES.new key, mode
 		end
 
 		it 'will return the data in ciphered form' do
-			@des.update([0, 0].pack('N2')).should == @expect.pack('N2')
+			expect(@des.update([0, 0].pack('N2'))).to eq @expected_value.pack('N2')
 		end
 
 		it 'will store the residual in buffer' do
-			@des.update([0].pack('N')).should == ''
-			@des.instance_variable_get(:@buf).should == [0].pack('N')
-			@des.update([0].pack('N')).should == @expect.pack('N2')
-			@des.instance_variable_get(:@buf).should == ''
+			expect(@des.update([0].pack('N'))).to eq ''
+			expect(@des.instance_variable_get(:@buf)).to eq [0].pack('N')
+			expect(@des.update([0].pack('N'))).to eq @expected_value.pack('N2')
+			expect(@des.instance_variable_get(:@buf)).to eq ''
 		end
 	end
 
 	describe '#final' do
 		before :each do
-			hex_key, mode, stage1, stage2, @expect = DATA[0]
+			hex_key, mode, stage1, stage2, @expected_value = DATA[0]
 			key = [hex_key[2..-1]].pack('H*')
 			@des = DES.new key, mode
 		end
 
 		it 'will flush the buffer by padding with null bytes' do
-			@des.final.should == ''
-			@des.update([0].pack('N')).should == ''
-			@des.final.should == @expect.pack('N2')
+			expect(@des.final).to eq ''
+			expect(@des.update([0].pack('N'))).to eq ''
+			expect(@des.final).to eq @expected_value.pack('N2')
 		end
 	end
 
 	describe '.encrypt' do
 		it 'is a shortcut class method for DES encryption' do
-			hex_key, mode, stage1, stage2, expect = DATA[0]
+			hex_key, mode, stage1, stage2, expected_value = DATA[0]
 			key = [hex_key[2..-1]].pack('H*')
-			mode.should == :encrypt
-			DES.encrypt(key, [0].pack('N')).should == expect.pack('N2')
+			expect(mode).to eq :encrypt
+			expect(DES.encrypt(key, [0].pack('N'))).to eq expected_value.pack('N2')
 		end
 	end
 
 	describe '.decrypt' do
 		it 'is a shortcut class method for DES decryption' do
-			hex_key, mode, stage1, stage2, expect = DATA[1]
+			hex_key, mode, stage1, stage2, expected_value = DATA[1]
 			key = [hex_key[2..-1]].pack('H*')
-			mode.should == :decrypt
-			DES.decrypt(key, [0].pack('N')).should == expect.pack('N2')
+			expect(mode).to eq :decrypt
+			expect(DES.decrypt(key, [0].pack('N'))).to eq expected_value.pack('N2')
 		end
 	end
 end
