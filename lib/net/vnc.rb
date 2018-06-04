@@ -149,7 +149,7 @@ module Net
 			packet = 0.chr * 8
 			packet[0] = 4.chr
 			text.split(//).each do |char|
-				packet[7] = char[0]
+				packet[7] = char.ord.chr
 				packet[1] = 1.chr
 				socket.write packet
 				packet[1] = 0.chr
@@ -178,11 +178,11 @@ module Net
 		end
 
 		def get_key_code which
-			if String === which
+			if which.class == String
 				if which.length != 1
 					raise ArgumentError, 'can only get key_code of single character strings'
 				end
-				which[0]
+				which[0].ord
 			else
 				KEY_MAP[which]
 			end
@@ -292,7 +292,7 @@ module Net
 				begin
 					break if @packet_reading_state != :loop
 					next unless IO.select [socket], nil, nil, 2
-					type = socket.read(1)[0]
+					type = socket.read(1).ord
 					read_packet type
 				rescue
 					warn "exception in packet_reading_thread: #{$!.class}:#{$!}"
