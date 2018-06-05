@@ -9,6 +9,12 @@ servers on any platform.
 
 The primary documentation is for the Net::VNC class.
 
+= Running the tests
+
+* Boot up the two VNC servers with `docker-compose up`.
+
+* Run the test-suite with `bundle exec rake spec`.
+
 = Thanks
 
 Code borrows a lot from Tim Waugh's excellent rfbplaymacro. So far all it
