@@ -16,18 +16,17 @@ Gem::Specification.new do |s|
 
 	# none yet
 	#s.executables = ['oletool']
-	s.files  = ['Rakefile', 'README', 'COPYING', 'ChangeLog', 'data/keys.yaml']
+	s.files  = ['Rakefile', 'README.rdoc', 'COPYING', 'Changelog.rdoc', 'data/keys.yaml']
 	s.files += Dir.glob('lib/**/*.rb')
 	s.files += Dir.glob('spec/*_spec.rb')
 	# is there an rspec equivalent?
 	#s.test_files = FileList['test/test_*.rb']
 
 	s.has_rdoc = true
-	s.extra_rdoc_files = ['README', 'ChangeLog']
+	s.extra_rdoc_files = ['README.rdoc', 'Changelog.rdoc']
 	s.rdoc_options += [
-		'--main', 'README',
+		'--main', 'README.rdoc',
 		'--title', "#{PKG_NAME} documentation",
 		'--tab-width', '2'
 	]
 end
-
