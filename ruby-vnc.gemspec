@@ -29,5 +29,7 @@ Gem::Specification.new do |s|
 		'--title', "#{PKG_NAME} documentation",
 		'--tab-width', '2'
 	]
+
+	s.add_development_dependency 'rspec', '~> 3.7'
 end
 
