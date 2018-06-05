@@ -1,19 +1,18 @@
 require 'rake'
-require 'spec/rake/spectask'
-
-spec = eval File.read('ruby-vnc.gemspec')
 
 task :default => :spec
 
 desc 'Run all specs'
-Spec::Rake::SpecTask.new :spec do |t|
-	t.spec_opts = ['--format specdoc --colour']
+begin
+  require 'rspec/core/rake_task'
+  RSpec::Core::RakeTask.new(:spec)
+rescue LoadError
 end
 
 desc 'Run all specs and generate html spec document'
 namespace :spec do
-	Spec::Rake::SpecTask.new :html do |t|
-		t.spec_opts = ['--format html:spec.html']
+	RSpec::Core::RakeTask.new :html do |t|
+		t.rspec_opts = ['--format html --out spec.html']
 	end
 end
 
