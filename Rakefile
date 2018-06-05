@@ -1,6 +1,5 @@
 require 'rake'
 require 'rake/rdoctask'
-require 'rake/gempackagetask'
 require 'spec/rake/spectask'
 require 'spec/rake/verify_rcov'
 
@@ -44,10 +43,12 @@ Rake::RDocTask.new do |t|
 	t.main = 'README'
 end
 
-Rake::GemPackageTask.new(spec) do |t|
-	t.gem_spec = spec
-	t.need_tar = false
-	t.need_zip = false
-	t.package_dir = 'build'
+require 'rubygems/package_task'
+
+spec = eval File.read('ruby-vnc.gemspec')
+Gem::PackageTask.new(spec) do |pkg|
+	pkg.need_tar = false
+	pkg.need_zip = false
+	pkg.package_dir = 'build'
 end
 
