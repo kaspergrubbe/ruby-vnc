@@ -1,15 +1,16 @@
 version: "3"
 services:
-  ubuntuvnc:
+  ubuntuvnc-nopass:
     image: dorowu/ubuntu-desktop-lxde-vnc
     ports:
       - "5901:5900"
     environment:
-      - VNC_PASSWORD=matzisnicesowearenice
       - RESOLUTION=1366x768
-  ubuntuvnc-nopass:
+
+  ubuntuvnc-withpass:
     image: dorowu/ubuntu-desktop-lxde-vnc
     ports:
       - "5902:5900"
     environment:
+      - VNC_PASSWORD=matzisnicesowearenice
       - RESOLUTION=1366x768
