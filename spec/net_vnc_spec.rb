@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/spec_helper'
+require 'spec_helper'
 require 'net/vnc'
 
 =begin
@@ -101,7 +101,7 @@ end
 
 describe 'Net::VNC' do
 	VNC = Net::VNC
-	
+
 	it 'should do something' do
 =begin
 		socket_mock.should_receive(:read).once.ordered.with(12).and_return("RFB 003.003\n")
