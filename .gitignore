@@ -30,3 +30,8 @@ Gemfile.lock
 .ruby-version
 .ruby-gemset
 
+## OS generated files
+.DS_store
+
+## For gem build artifacts
+/build/
