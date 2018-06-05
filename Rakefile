@@ -1,7 +1,6 @@
 require 'rake'
 require 'rake/rdoctask'
 require 'spec/rake/spectask'
-require 'spec/rake/verify_rcov'
 
 spec = eval File.read('ruby-vnc.gemspec')
 
@@ -19,20 +18,6 @@ namespace :spec do
 	end
 end
 
-desc 'Run all specs and generate coverage'
-Spec::Rake::SpecTask.new :rcov do |t|
-	t.rcov = true
-	t.rcov_opts = ['--exclude', 'spec']
-	t.rcov_opts << '--xrefs'
-	t.rcov_opts << '--text-report'
-end
-
-namespace :rcov do
-	RCov::VerifyTask.new :verify => :rcov do |t|
-		t.threshold = 100.0
-		t.index_html = 'coverage/index.html'
-	end
-end
 
 Rake::RDocTask.new do |t|
 	t.rdoc_dir = 'doc'
