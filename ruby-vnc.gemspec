@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
 	s.description = %q{A library which implements the client VNC protocol to control VNC servers.}
 	s.authors = ['Charles Lowe']
 	s.email = %q{aquasync@gmail.com}
-	s.homepage = %q{http://code.google.com/p/ruby-vnc}
+	s.homepage = %q{https://github.com/aquasync/ruby-vnc}
 	s.license = %q{MIT}
 	s.rubyforge_project = %q{ruby-vnc}
 
