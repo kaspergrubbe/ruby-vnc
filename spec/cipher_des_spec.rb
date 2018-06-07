@@ -1,7 +1,7 @@
-require File.dirname(__FILE__) + '/spec_helper'
+require 'spec_helper'
 require 'cipher/des'
 
-describe 'Cipher::DES' do
+RSpec.describe 'Cipher::DES' do
 	DES = Cipher::DES
 
 	DATA = [
@@ -69,7 +69,7 @@ describe 'Cipher::DES' do
 
 	describe '#initialize' do
 		it 'can create a DES object from a key and a mode' do
-			hex_key, mode, stage1, stage2, expected_value = DATA[0]
+			hex_key, mode, _, stage2, _ = DATA[0]
 			key = [hex_key[2..-1]].pack('H*')
 			des = DES.new key, mode
 			expect(des.key).to eq key
@@ -90,7 +90,7 @@ describe 'Cipher::DES' do
 
 	describe '#update' do
 		before :each do
-			hex_key, mode, stage1, stage2, @expected_value = DATA[0]
+			hex_key, mode, _, _, @expected_value = DATA[0]
 			key = [hex_key[2..-1]].pack('H*')
 			@des = DES.new key, mode
 		end
@@ -109,7 +109,7 @@ describe 'Cipher::DES' do
 
 	describe '#final' do
 		before :each do
-			hex_key, mode, stage1, stage2, @expected_value = DATA[0]
+			hex_key, mode, _, _, @expected_value = DATA[0]
 			key = [hex_key[2..-1]].pack('H*')
 			@des = DES.new key, mode
 		end
@@ -123,7 +123,7 @@ describe 'Cipher::DES' do
 
 	describe '.encrypt' do
 		it 'is a shortcut class method for DES encryption' do
-			hex_key, mode, stage1, stage2, expected_value = DATA[0]
+			hex_key, mode, _, _, expected_value = DATA[0]
 			key = [hex_key[2..-1]].pack('H*')
 			expect(mode).to eq :encrypt
 			expect(DES.encrypt(key, [0].pack('N'))).to eq expected_value.pack('N2')
@@ -132,7 +132,7 @@ describe 'Cipher::DES' do
 
 	describe '.decrypt' do
 		it 'is a shortcut class method for DES decryption' do
-			hex_key, mode, stage1, stage2, expected_value = DATA[1]
+			hex_key, mode, _, _, expected_value = DATA[1]
 			key = [hex_key[2..-1]].pack('H*')
 			expect(mode).to eq :decrypt
 			expect(DES.decrypt(key, [0].pack('N'))).to eq expected_value.pack('N2')

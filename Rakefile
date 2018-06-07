@@ -1,53 +1,38 @@
 require 'rake'
-require 'rake/rdoctask'
-require 'rake/gempackagetask'
-require 'spec/rake/spectask'
-require 'spec/rake/verify_rcov'
-
-spec = eval File.read('ruby-vnc.gemspec')
 
 task :default => :spec
 
 desc 'Run all specs'
-Spec::Rake::SpecTask.new :spec do |t|
-	t.spec_opts = ['--format specdoc --colour']
+begin
+  require 'rspec/core/rake_task'
+  RSpec::Core::RakeTask.new(:spec)
+rescue LoadError
 end
 
 desc 'Run all specs and generate html spec document'
 namespace :spec do
-	Spec::Rake::SpecTask.new :html do |t|
-		t.spec_opts = ['--format html:spec.html']
+	RSpec::Core::RakeTask.new :html do |t|
+		t.rspec_opts = ['--format html --out spec.html']
 	end
 end
 
-desc 'Run all specs and generate coverage'
-Spec::Rake::SpecTask.new :rcov do |t|
-	t.rcov = true
-	t.rcov_opts = ['--exclude', 'spec']
-	t.rcov_opts << '--xrefs'
-	t.rcov_opts << '--text-report'
-end
-
-namespace :rcov do
-	RCov::VerifyTask.new :verify => :rcov do |t|
-		t.threshold = 100.0
-		t.index_html = 'coverage/index.html'
-	end
-end
+require 'rdoc/task'
 
 Rake::RDocTask.new do |t|
 	t.rdoc_dir = 'doc'
 	t.rdoc_files.include 'lib/**/*.rb'
 	t.rdoc_files.include 'README'
-	t.title = "#{PKG_NAME} documentation"
+	t.title = "ruby-vnc documentation"
 	t.options += %w[--line-numbers --inline-source --tab-width 2]
 	t.main = 'README'
 end
 
-Rake::GemPackageTask.new(spec) do |t|
-	t.gem_spec = spec
-	t.need_tar = false
-	t.need_zip = false
-	t.package_dir = 'build'
+require 'rubygems/package_task'
+
+spec = eval File.read('ruby-vnc.gemspec')
+Gem::PackageTask.new(spec) do |pkg|
+	pkg.need_tar = false
+	pkg.need_zip = false
+	pkg.package_dir = 'build'
 end
 
