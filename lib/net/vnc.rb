@@ -105,7 +105,7 @@ module Net
 		end
 
 		def connect
-			@socket = TCPSocket.open server, port
+			@socket = TCPSocket.open(server, port)
 			unless socket.read(12) =~ /^RFB (\d{3}.\d{3})\n$/
 				raise 'invalid server response'
 			end
