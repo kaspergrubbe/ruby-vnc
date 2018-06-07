@@ -9,6 +9,12 @@ servers on any platform.
 
 The primary documentation is for the Net::VNC class.
 
+= Resources
+
+* {The Remote Framebuffer Protocol (RFC6143)}[https://tools.ietf.org/html/rfc6143]
+
+* https://github.com/rfbproto/rfbproto/blob/master/rfbproto.rst
+
 = Thanks
 
 Code borrows a lot from Tim Waugh's excellent rfbplaymacro. So far all it

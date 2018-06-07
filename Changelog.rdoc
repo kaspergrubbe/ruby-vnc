@@ -1,5 +1,6 @@
 == Unreleased:
 
+- Parse framebuffer width/height and hostname from ServerInitialisation
 - Added a project Gemfile
 
 == 1.1.0 / 2012-06-03
