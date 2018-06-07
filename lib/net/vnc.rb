@@ -1,7 +1,7 @@
 require 'socket'
 require 'yaml'
 require 'thread'
-require 'cipher/des'
+require 'cipher/vncdes'
 require 'net/vnc/version'
 
 module Net
@@ -121,7 +121,7 @@ module Net
 			when 2
 				password = @options[:password] or raise 'Need to authenticate but no password given'
 				challenge = socket.read CHALLENGE_SIZE
-				response = Cipher::DES.encrypt password, challenge
+				response = Cipher::VNCDES.new(password).encrypt(challenge)
 				socket.write response
 				ok = socket.read(4).to_s.unpack('N')[0]
 				raise 'Unable to authenticate - %p' % ok unless ok == 0
