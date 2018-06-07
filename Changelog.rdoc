@@ -1,5 +1,6 @@
 == Unreleased:
 
+- Replaced DES-algorithm with Ruby's built-in OpenSSL wrapper instead
 - Parse framebuffer width/height and hostname from ServerInitialisation
 - Added a project Gemfile
 
