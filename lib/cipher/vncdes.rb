@@ -30,7 +30,7 @@ module Cipher
   class VNCDES
     attr_reader :key
 
-    def initialize key
+    def initialize(key)
       @key = normalized(key[0..7])
       self
     end
