@@ -22,7 +22,7 @@ Rake::RDocTask.new do |t|
   t.rdoc_dir = 'doc'
   t.rdoc_files.include 'lib/**/*.rb'
   t.rdoc_files.include 'README'
-  t.title = "ruby-vnc documentation"
+  t.title = 'ruby-vnc documentation'
   t.options += %w[--line-numbers --inline-source --tab-width 2]
   t.main = 'README'
 end
