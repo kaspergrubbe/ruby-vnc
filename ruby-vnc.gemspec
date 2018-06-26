@@ -6,13 +6,13 @@ PKG_VERSION = Net::VNC::VERSION
 Gem::Specification.new do |s|
   s.name = PKG_NAME
   s.version = PKG_VERSION
-  s.summary = %q{Ruby VNC library.}
-  s.description = %q{A library which implements the client VNC protocol to control VNC servers.}
+  s.summary = 'Ruby VNC library.'
+  s.description = 'A library which implements the client VNC protocol to control VNC servers.'
   s.authors = ['Charles Lowe']
-  s.email = %q{aquasync@gmail.com}
-  s.homepage = %q{https://github.com/aquasync/ruby-vnc}
-  s.license = %q{MIT}
-  s.rubyforge_project = %q{ruby-vnc}
+  s.email = 'aquasync@gmail.com'
+  s.homepage = 'https://github.com/aquasync/ruby-vnc'
+  s.license = 'MIT'
+  s.rubyforge_project = 'ruby-vnc'
 
   # none yet
   #s.executables = ['oletool']
