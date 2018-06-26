@@ -8,11 +8,11 @@ RSpec.describe Net::VNC do
   context 'no auth' do
     it 'should connect with no password' do
       Net::VNC.open(NO_AUTH_SERVER_DISPLAY) do |vnc|
-        vnc.pointer_move(10,15)
+        vnc.pointer_move(10, 15)
         expect(vnc.pointer.x).to eq 10
         expect(vnc.pointer.y).to eq 15
 
-        vnc.pointer_move(20,25)
+        vnc.pointer_move(20, 25)
         expect(vnc.pointer.x).to eq 20
         expect(vnc.pointer.y).to eq 25
       end
@@ -20,7 +20,7 @@ RSpec.describe Net::VNC do
 
     it 'should connect with password even though it is not needed' do
       Net::VNC.open(NO_AUTH_SERVER_DISPLAY, password: 'password') do |vnc|
-        vnc.pointer_move(10,15)
+        vnc.pointer_move(10, 15)
         expect(vnc.pointer.x).to eq 10
       end
     end
@@ -29,7 +29,7 @@ RSpec.describe Net::VNC do
   context 'with auth' do
     it 'should connect with a password' do
       Net::VNC.open(WITH_AUTH_SERVER_DISPLAY, password: 'matzisnicesowearenice') do |vnc|
-        vnc.pointer_move(10,15)
+        vnc.pointer_move(10, 15)
         expect(vnc.pointer.x).to eq 10
         expect(vnc.pointer.y).to eq 15
       end
