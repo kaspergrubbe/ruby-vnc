@@ -14,7 +14,7 @@ RSpec.describe Cipher::VNCDES do
   end
 
   it 'should correctly encrypt keys' do
-    encrypted_string = Cipher::VNCDES.new("matzisnicesowearenice").encrypt("\x9D\xBBU\n\x05b\x96L \b'&\x18\xCE(\xD8")
+    encrypted_string = Cipher::VNCDES.new('matzisnicesowearenice').encrypt("\x9D\xBBU\n\x05b\x96L \b'&\x18\xCE(\xD8")
     expect(encrypted_string.encoding.to_s).to eq 'UTF-8'
     expect(encrypted_string.size).to eq 16
     expect(encrypted_string).to eq "2\x95\xA7\xAE\xD4A\xF3\xDCt\x82d\e\xAE\x8A\xB9c"

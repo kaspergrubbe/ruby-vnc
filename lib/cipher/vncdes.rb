@@ -27,29 +27,29 @@ require 'openssl'
 # The protocol continues with the SecurityResult message.
 
 module Cipher
-	class VNCDES
-		attr_reader :key
+  class VNCDES
+    attr_reader :key
 
-		def initialize key
-			@key = normalized(key[0..7])
-			self
-		end
+    def initialize(key)
+      @key = normalized(key[0..7])
+      self
+    end
 
-		def encrypt(challenge)
-			chunks = [challenge.slice(0, 8), challenge.slice(8, 8)]
-			cipher = OpenSSL::Cipher::DES.new(:ECB)
-			cipher.encrypt
-			cipher.key = self.key
-			chunks.reduce('') { |a, e| cipher.reset; a << cipher.update(e) }.force_encoding('UTF-8')
-		end
+    def encrypt(challenge)
+      chunks = [challenge.slice(0, 8), challenge.slice(8, 8)]
+      cipher = OpenSSL::Cipher::DES.new(:ECB)
+      cipher.encrypt
+      cipher.key = self.key
+      chunks.reduce('') { |a, e| cipher.reset; a << cipher.update(e) }.force_encoding('UTF-8')
+    end
 
-		private
+    private
 
-		def normalized(key)
-			rev = ->(n) { (0...8).reduce(0) { |a, e| a + 2**e * n[7 - e] } }
-			inv = key.each_byte.map { |b| rev[b].chr }.join
-			inv.ljust(8, "\x00")
-		end
-	end
+    def normalized(key)
+      rev = ->(n) { (0...8).reduce(0) { |a, e| a + 2**e * n[7 - e] } }
+      inv = key.each_byte.map { |b| rev[b].chr }.join
+      inv.ljust(8, "\x00")
+    end
+  end
 end
 
