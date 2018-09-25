@@ -188,7 +188,7 @@ module Net
         if which.length != 1
           raise ArgumentError, 'can only get key_code of single character strings'
         end
-        which[0]
+        which[0].ord
       else
         KEY_MAP[which]
       end
