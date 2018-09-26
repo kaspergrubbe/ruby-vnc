@@ -299,7 +299,7 @@ module Net
           break if @packet_reading_state != :loop
           next unless IO.select [socket], nil, nil, 2
           type = socket.read(1)[0]
-          read_packet type
+          read_packet type.ord
         rescue
           warn "exception in packet_reading_thread: #{$!.class}:#{$!}"
           break
