@@ -3,6 +3,9 @@ require 'yaml'
 require 'thread'
 require 'cipher/vncdes'
 require 'net/vnc/version'
+require 'net/rfb/frame_buffer'
+require 'matrix'
+require 'rmagick'
 
 module Net
   #
@@ -61,7 +64,9 @@ module Net
     CHALLENGE_SIZE = 16
     DEFAULT_OPTIONS = {
       :shared => false,
-      :wait => 0.1
+      :wait => 0.1,
+      :pix_fmt => :BGRA,
+      :encoding => Net::RFB::ENC_RAW,
     }
 
     keys_file = File.dirname(__FILE__) + '/../../data/keys.yaml'
@@ -138,6 +143,21 @@ module Net
 
       # TODO: parse this.
       pixel_format = socket.read(16)
+
+      pf = @options[:pix_fmt].to_s.dup.prepend('PIX_FMT_').upcase.to_sym
+      fail ArgumentError, "Unknown pix_fmt #{@options[:pix_fmt]}" unless Net::RFB.const_defined? pf
+      @pix_fmt = Net::RFB.const_get(pf)
+
+      @fb = Net::RFB::FrameBuffer.new socket, framebuffer_width, framebuffer_height, @pix_fmt[:bpp]
+
+      # set encoding
+      @enc = options[:encoding]
+      unless @fb.set_encodings [@enc]
+        raise 'Error while setting encoding'
+      end
+
+      # set pixel format
+      @fb.set_pixel_format @pix_fmt
 
       # read the name in byte chunks of 20
       name_length = socket.read(4).to_s.unpack('N')[0]
@@ -248,6 +268,31 @@ module Net
       wait options
     end
 
+    def get_screen_pixel_data16
+      ret = nil
+      @fb.request_update_fb 0 do |data|
+        pixel_data = data.unpack("C*")
+        pixel_data_16 = Matrix[pixel_data] * 257  # convert to 2 bytes expression
+        ret = pixel_data_16.to_a[0]
+      end
+      ret
+    end
+
+    def take_screenshot(dest)
+      raise 'Unsupported pixel_format. Now supported BGRA format only.' if @pix_fmt[:string] != 'bgra'
+      pixel_data_16 = get_screen_pixel_data16
+      raise 'Error in get_screen_pixel_data.' unless pixel_data_16
+      image = Magick::Image.new(@fb.w, @fb.h)
+      image.import_pixels(0, 0, @fb.w, @fb.h, 'BGRO', pixel_data_16)
+      if dest.is_a? IO
+        dest.write image.to_blob
+      elsif dest.is_a? String
+        image.write dest
+      end
+    ensure
+      image.destroy! if image
+    end
+
     def wait options={}
       sleep options[:wait] || @options[:wait]
     end
@@ -288,7 +333,7 @@ module Net
         len = socket.read(4).unpack('N')[0]
         @mutex.synchronize { @clipboard = socket.read len }
       else
-        raise NotImplementedError, 'unhandled server packet type - %d' % type
+        @fb.handle_response type
       end
     end
 
@@ -301,7 +346,7 @@ module Net
           type = socket.read(1)[0]
           read_packet type.ord
         rescue
-          warn "exception in packet_reading_thread: #{$!.class}:#{$!}"
+          warn "exception in packet_reading_thread: #{$!.class}:#{$!}\n#{$!.backtrace}"
           break
         end
       end
@@ -309,4 +354,3 @@ module Net
     end
   end
 end
-
