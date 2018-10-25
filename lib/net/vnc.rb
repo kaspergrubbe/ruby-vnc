@@ -270,7 +270,7 @@ module Net
 
     def get_screen_pixel_data16
       ret = nil
-      @fb.request_update_fb 0 do |data|
+      @fb.request_update_fb 1 do |data|
         pixel_data = data.unpack("C*")
         pixel_data_16 = Matrix[pixel_data] * 257  # convert to 2 bytes expression
         ret = pixel_data_16.to_a[0]
