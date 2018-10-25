@@ -168,6 +168,9 @@ module Net
           name_length -= len
         end
       end.join
+
+      # request all pixel data
+      @fb.request_update_fb 0
     end
 
     # this types +text+ on the server
