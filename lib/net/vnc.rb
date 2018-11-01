@@ -279,7 +279,7 @@ module Net
       end
     end
 
-    def copy_text_to_clipboard text
+    def clipboard= text
       text = text.to_s.gsub(/\R/, "\n") # eol of ClientCutText's text is LF
       byte_size = text.to_s.bytes.size
       packet = 0.chr * (8 + byte_size)
