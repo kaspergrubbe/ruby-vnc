@@ -287,6 +287,7 @@ module Net
       packet[4, 4] = [byte_size].pack('N') # length
       packet[8, byte_size] = text
       socket.write(packet)
+      @clipboard = text
     end
 
     private
