@@ -29,10 +29,7 @@ module Net::RFB
 
       @encodings = encodings
 
-      # convert pixel_format symbol to VNCRec::PIX_FMT_XXX symbol.
-      pf = bpp.to_s.prepend('PIX_FMT_').upcase.to_sym
-      raise ArgumentError, "Unsupported bpp '#{bpp}', now supported values are: BGR8, BGRA" unless VNCRec.const_defined? pf
-      @vnc_rec_pix_fmt = VNCRec.const_get(pf)
+      @vnc_rec_pix_fmt = convert_to_vnc_rec_pix_fmt bpp
 
       @proxy = VNCRec::RFB::Proxy.new(io, nil, nil, nil, [VNCRecAuthStub, nil])
       @proxy.prepare_framebuffer w, h, @vnc_rec_pix_fmt[:bpp]
@@ -66,15 +63,15 @@ module Net::RFB
     end
 
     # Set a way that server should use to represent pixel data
-    # @param [Hash] pixel format:
-    #  * {Net::RFB::PIX_FMT_BGR8}
-    #  * {Net::RFB::PIX_FMT_BGRA}
+    # @param [Symbol|String] pixel format:
+    #  * :BGR8
+    #  * :BGRA
     def set_pixel_format(format)
-      @proxy.set_pixel_format format
+      @proxy.set_pixel_format convert_to_vnc_rec_pix_fmt(format)
     end
 
     # Set way of encoding video frames.
-    # @param encodings [Symbol, String] list of encoding of video data used to transfer.
+    # @param encodings [Symbol|String] list of encoding of video data used to transfer.
     #  * :RAW
     #  * :HEXTILE
     #  * :ZRLE
@@ -157,6 +154,15 @@ module Net::RFB
     end
 
     private
+
+    # convert pixel_format symbol to VNCRec::PIX_FMT_XXX symbol.
+    # @param pix_fmt [Symbol|String] bits per pixel (BGR8 or BGRA)
+    def convert_to_vnc_rec_pix_fmt(pix_fmt)
+      return pix_fmt if pix_fmt.is_a?(Hash)
+      pf = pix_fmt.to_s.prepend('PIX_FMT_').upcase.to_sym
+      raise ArgumentError, "Unsupported pixel_format '#{pix_fmt}', now supported values are: BGR8, BGRA" unless VNCRec.const_defined? pf
+      VNCRec.const_get(pf)
+    end
 
     # Receives data and applies diffs(if incremental) to the @data
     def handle_fb_update
