@@ -3,8 +3,6 @@ require 'yaml'
 require 'thread'
 require 'cipher/vncdes'
 require 'net/vnc/version'
-require 'net/rfb/frame_buffer'
-require 'matrix'
 
 module Net
   #
@@ -65,7 +63,7 @@ module Net
       :shared => false,
       :wait => 0.1,
       :pix_fmt => :BGRA,
-      :encoding => Net::RFB::ENC_RAW,
+      :encoding => :ENC_RAW
     }
 
     keys_file = File.dirname(__FILE__) + '/../../data/keys.yaml'
@@ -137,26 +135,11 @@ module Net
       socket.write((options[:shared] ? 1 : 0).chr)
 
       # ServerInitialisation
-      framebuffer_width  = socket.read(2).to_s.unpack('n')[0].to_i
-      framebuffer_height = socket.read(2).to_s.unpack('n')[0].to_i
+      @framebuffer_width  = socket.read(2).to_s.unpack('n')[0].to_i
+      @framebuffer_height = socket.read(2).to_s.unpack('n')[0].to_i
 
       # TODO: parse this.
       pixel_format = socket.read(16)
-
-      pf = @options[:pix_fmt].to_s.dup.prepend('PIX_FMT_').upcase.to_sym
-      fail ArgumentError, "Unknown pix_fmt #{@options[:pix_fmt]}" unless Net::RFB.const_defined? pf
-      @pix_fmt = Net::RFB.const_get(pf)
-
-      @fb = Net::RFB::FrameBuffer.new socket, framebuffer_width, framebuffer_height, @pix_fmt[:bpp]
-
-      # set encoding
-      @enc = options[:encoding]
-      unless @fb.set_encodings [@enc]
-        raise 'Error while setting encoding'
-      end
-
-      # set pixel format
-      @fb.set_pixel_format @pix_fmt
 
       # read the name in byte chunks of 20
       name_length = socket.read(4).to_s.unpack('N')[0]
@@ -167,9 +150,6 @@ module Net
           name_length -= len
         end
       end.join
-
-      # request all pixel data
-      @fb.request_update_fb 0
     end
 
     # this types +text+ on the server
@@ -270,24 +250,13 @@ module Net
       wait options
     end
 
-    def get_screen_pixel_data16
-      ret = nil
-      @fb.request_update_fb 1 do |data|
-        pixel_data = data.unpack("C*")
-        pixel_data_16 = Matrix[pixel_data] * 257  # convert to 2 bytes expression
-        ret = pixel_data_16.to_a[0]
-      end
-      ret
-    end
-
     # take screenshot to a file, or write to IO-object
     def take_screenshot(dest)
       _load_additional_required_gems!  # on-demand loading
-      raise 'Unsupported pixel_format. Now supported BGRA format only.' if @pix_fmt[:string] != 'bgra'
       pixel_data_16 = get_screen_pixel_data16
       raise 'Error in get_screen_pixel_data.' unless pixel_data_16
-      image = Magick::Image.new(@fb.w, @fb.h)
-      image.import_pixels(0, 0, @fb.w, @fb.h, 'BGRO', pixel_data_16)
+      image = Magick::Image.new(@framebuffer_width, @framebuffer_height)
+      image.import_pixels(0, 0, @framebuffer_width, @framebuffer_height, 'BGRO', pixel_data_16)
       if dest.is_a? IO
         dest.write image.to_blob
       elsif dest.is_a? String
@@ -332,12 +301,18 @@ module Net
 
     def read_packet type
       case type
-      when 3 # ServerCutText
+      when 0 # ----------------------------------------------- FramebufferUpdate
+        @fb.handle_response type if @fb
+      when 1 # --------------------------------------------- SetColourMapEntries
+        @fb.handle_response type if @fb
+      when 2 # ------------------------------------------------------------ Bell
+        nil  # not support
+      when 3 # --------------------------------------------------- ServerCutText
         socket.read 3 # discard padding bytes
         len = socket.read(4).unpack('N')[0]
         @mutex.synchronize { @clipboard = socket.read len }
       else
-        @fb.handle_response type
+        raise NotImplementedError, 'unhandled server packet type - %d' % type
       end
     end
 
@@ -357,12 +332,48 @@ module Net
       @packet_reading_state = nil
     end
 
+    def get_screen_pixel_data16
+      ret = nil
+      @fb.request_update_fb 1 do
+        ret = @fb.pixel_data_16
+      end
+      ret
+    end
+
     def _load_additional_required_gems!
+      return true if @fb
       begin
         require 'rmagick'
       rescue LoadError
-        raise 'RMagick gem required for using save screenshot feature, but not installed it.'
+        raise 'The "rmagick" gem required for using save screenshot feature, but not installed it.'
       end
+
+      begin
+        require 'vncrec'
+        require 'net/rfb/frame_buffer'
+      rescue LoadError
+        raise 'The "vncrec" gem required for using save screenshot feature, but not installed it.'
+      end
+
+      pf = @options[:pix_fmt].to_s.dup.prepend('PIX_FMT_').upcase.to_sym
+      raise ArgumentError, "Unknown pix_fmt #{@options[:pix_fmt]}" unless VNCRec.const_defined? pf
+      @pix_fmt = VNCRec.const_get(pf)
+
+      @fb = Net::RFB::FrameBuffer.new @socket, @framebuffer_width, @framebuffer_height, @pix_fmt[:bpp]
+
+      # set encoding
+      @enc = @options[:encoding]
+      unless @fb.set_encodings [@enc]
+        raise 'Error while setting encoding'
+      end
+
+      # set pixel format
+      @fb.set_pixel_format @pix_fmt
+
+      # request all pixel data
+      @fb.request_update_fb 0
+
+      true
     end
   end
 end
