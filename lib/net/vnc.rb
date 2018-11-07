@@ -252,18 +252,8 @@ module Net
 
     # take screenshot to a file, or write to IO-object
     def take_screenshot(dest)
-      _load_additional_required_gems!  # on-demand loading
-      pixel_data_16 = get_screen_pixel_data16
-      raise 'Error in get_screen_pixel_data.' unless pixel_data_16
-      image = Magick::Image.new(@framebuffer_width, @framebuffer_height)
-      image.import_pixels(0, 0, @framebuffer_width, @framebuffer_height, 'BGRO', pixel_data_16)
-      if dest.is_a? IO
-        dest.write image.to_blob
-      elsif dest.is_a? String
-        image.write dest
-      end
-    ensure
-      image.destroy! if image
+      fb = _load_frame_buffer  # on-demand loading
+      fb.save_screenshot dest
     end
 
     def wait options={}
@@ -332,29 +322,14 @@ module Net
       @packet_reading_state = nil
     end
 
-    def get_screen_pixel_data16
-      ret = nil
-      @fb.request_update_fb 1 do
-        ret = @fb.pixel_data_16
+    def _load_frame_buffer
+      unless @fb
+        require 'net/rfb/frame_buffer'
+
+        @fb = Net::RFB::FrameBuffer.new @socket, @framebuffer_width, @framebuffer_height, @options[:pix_fmt], @options[:encoding]
+        @fb.send_initial_data
       end
-      ret
-    end
-
-    def _load_additional_required_gems!
-      return true if @fb
-      begin
-        require 'rmagick'
-      rescue LoadError
-        raise 'The "rmagick" gem required for using save screenshot feature, but not installed it.'
-      end
-
-      require 'net/rfb/frame_buffer'
-
-      @fb = Net::RFB::FrameBuffer.new @socket, @framebuffer_width, @framebuffer_height, @options[:pix_fmt], @options[:encoding]
-
-      @fb.send_initial_data
-
-      true
+      @fb
     end
   end
 end

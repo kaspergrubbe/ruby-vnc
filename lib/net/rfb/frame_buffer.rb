@@ -1,9 +1,9 @@
 require 'thread'
-require 'vncrec/constants.rb'
-require 'vncrec/rfb/proxy.rb'
 
 begin
   require 'vncrec'
+  require 'vncrec/constants.rb'
+  require 'vncrec/rfb/proxy.rb'
 rescue LoadError
   raise 'The "vncrec" gem required for using framebuffer feature, but not installed it.'
 end
@@ -128,6 +128,32 @@ module Net::RFB
       when 1 # --------------------------------------------- SetColourMapEntries
         return handle_set_colormap_entries
       end
+    end
+
+    def save_screenshot(dest)
+      begin
+        require 'rmagick'
+      rescue LoadError
+        raise 'The "rmagick" gem required for using save screenshot feature, but not installed it.'
+      end
+
+      self.request_update_fb 1 do
+        # nothing to do
+      end
+
+      px = self.pixel_data_16
+      raise 'Error in get_screen_pixel_data.' unless px
+      image = Magick::Image.new(@proxy.w, @proxy.h)
+      image.import_pixels(0, 0, @proxy.w, @proxy.h, 'BGRO', px)
+      if dest.is_a? IO
+        dest.write image.to_blob
+      elsif dest.is_a?(String) || dest.is_a?(Pathname)
+        image.write dest.to_s
+      else
+        raise ArgumentError, "Unsupported destination type #{dest.inspect}"
+      end
+    ensure
+      image.destroy! if image
     end
 
     private
