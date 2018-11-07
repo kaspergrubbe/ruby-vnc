@@ -5,7 +5,6 @@ require 'cipher/vncdes'
 require 'net/vnc/version'
 require 'net/rfb/frame_buffer'
 require 'matrix'
-require 'rmagick'
 
 module Net
   #
@@ -281,7 +280,9 @@ module Net
       ret
     end
 
+    # take screenshot to a file, or write to IO-object
     def take_screenshot(dest)
+      _load_additional_required_gems!  # on-demand loading
       raise 'Unsupported pixel_format. Now supported BGRA format only.' if @pix_fmt[:string] != 'bgra'
       pixel_data_16 = get_screen_pixel_data16
       raise 'Error in get_screen_pixel_data.' unless pixel_data_16
@@ -354,6 +355,14 @@ module Net
         end
       end
       @packet_reading_state = nil
+    end
+
+    def _load_additional_required_gems!
+      begin
+        require 'rmagick'
+      rescue LoadError
+        raise 'RMagick gem required for using save screenshot feature, but not installed it.'
+      end
     end
   end
 end
