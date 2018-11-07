@@ -63,7 +63,7 @@ module Net
       :shared => false,
       :wait => 0.1,
       :pix_fmt => :BGRA,
-      :encoding => :ENC_RAW
+      :encoding => :RAW
     }
 
     keys_file = File.dirname(__FILE__) + '/../../data/keys.yaml'
@@ -348,30 +348,11 @@ module Net
         raise 'The "rmagick" gem required for using save screenshot feature, but not installed it.'
       end
 
-      begin
-        require 'vncrec'
-        require 'net/rfb/frame_buffer'
-      rescue LoadError
-        raise 'The "vncrec" gem required for using save screenshot feature, but not installed it.'
-      end
+      require 'net/rfb/frame_buffer'
 
-      pf = @options[:pix_fmt].to_s.dup.prepend('PIX_FMT_').upcase.to_sym
-      raise ArgumentError, "Unknown pix_fmt #{@options[:pix_fmt]}" unless VNCRec.const_defined? pf
-      @pix_fmt = VNCRec.const_get(pf)
+      @fb = Net::RFB::FrameBuffer.new @socket, @framebuffer_width, @framebuffer_height, @options[:pix_fmt], @options[:encoding]
 
-      @fb = Net::RFB::FrameBuffer.new @socket, @framebuffer_width, @framebuffer_height, @pix_fmt[:bpp]
-
-      # set encoding
-      @enc = @options[:encoding]
-      unless @fb.set_encodings [@enc]
-        raise 'Error while setting encoding'
-      end
-
-      # set pixel format
-      @fb.set_pixel_format @pix_fmt
-
-      # request all pixel data
-      @fb.request_update_fb 0
+      @fb.send_initial_data
 
       true
     end
