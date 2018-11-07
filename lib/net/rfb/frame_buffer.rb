@@ -45,7 +45,7 @@ module Net::RFB
       self.set_pixel_format @vnc_rec_pix_fmt
 
       # request all pixel data
-      self.request_update_fb 0
+      self.request_update_fb incremental: false
     end
 
     # 8bit pixel data of screen
@@ -81,47 +81,31 @@ module Net::RFB
 
     # Send request for update framebuffer.
     #  if block given, called it with pixel data after the response received.
-    # @param [Integer] inc incremental, request just difference
+    # @param [Boolean] incremental incremental, request just difference
     #  between previous and current framebuffer state.
     # @param x [Integer]
     # @param y [Integer]
     # @param w [Integer]
     # @param h [Integer]
-    # @return if block given, returned value by block, else nil.
-    def request_update_fb(inc, x: nil, y: nil, w: nil, h: nil)
-      ret = nil
+    # @param wait_for_response [Boolean] if true, wait for a FramebufferUpdate response
+    def request_update_fb(incremental: true, x: nil, y: nil, w: nil, h: nil, wait_for_response: false)
       @cb_mutex.synchronize do
-        if block_given?
-          @call_back = Proc.new { |data| yield data }
-        end
+        @proxy.fb_update_request incremental ? 1 : 0, x||0, y||0, w||@proxy.w, h||@proxy.h
 
-        @proxy.fb_update_request inc, x||0, y||0, w||@proxy.w, h||@proxy.h
-
-        if block_given?
+        if wait_for_response
           @cb_cv.wait
-          ret = @cb_ret
-          @cb_ret = nil
         end
       end
-      ret
     end
 
     def handle_response(t)
       case t
       when 0 # ----------------------------------------------- FramebufferUpdate
-        handle_fb_update
-        if @call_back
-          @cb_mutex.synchronize do
-            cb = @call_back
-            @call_back = nil
-            begin
-              @cb_ret = cb.call @proxy.data
-            ensure
-              @cb_cv.broadcast
-            end
-          end
+        ret = handle_fb_update
+        @cb_mutex.synchronize do
+          @cb_cv.broadcast
         end
-        return @proxy.data
+        return ret
       when 1 # --------------------------------------------- SetColourMapEntries
         return handle_set_colormap_entries
       end
@@ -134,9 +118,7 @@ module Net::RFB
         raise 'The "rmagick" gem required for using save screenshot feature, but not installed it.'
       end
 
-      self.request_update_fb 1 do
-        # nothing to do
-      end
+      self.request_update_fb(wait_for_response: true)
 
       px = self.pixel_data_16
       raise 'Error in get_screen_pixel_data.' unless px
