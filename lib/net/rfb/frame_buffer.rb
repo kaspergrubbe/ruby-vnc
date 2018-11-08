@@ -1,4 +1,5 @@
 require 'vncrec'
+require 'chunky_png'
 
 module Net::RFB
 
@@ -40,18 +41,41 @@ module Net::RFB
       self.request_update_fb incremental: false
     end
 
-    # 8bit pixel data of screen
+    # raw pixel data of screen
     def pixel_data
       @proxy.data
     end
 
-    # 16bit pixel data of screen
-    def pixel_data_16
-      raise 'Unsupported pixel_format. Now supported BGRA format only.' if @vnc_rec_pix_fmt[:string] != 'bgra'
-      require 'matrix'
-      pxl_data = self.pixel_data.unpack("C*")
-      pxl_data_16 = Matrix[pxl_data] * 257  # convert to 2 bytes expression
-      pxl_data_16.to_a[0]
+    # 32bit RGBA pixel data of screen
+    def rgba_pixel_data
+      px = self.pixel_data
+      raise 'Error in get raw pixel_data.' unless px
+      self.class.convert_raw_pixel_data_to_rgba px, @vnc_rec_pix_fmt[:string]
+    end
+
+    # convert raw pixel data to 32bit RGBA values according to VNC pixel format
+    # @param px      [String]  binary pixel data
+    # @param pix_fmt [String]  pixel format (bgra, bgr8)
+    # @return [Array<Integer>] array of 32bit pixel data
+    def self.convert_raw_pixel_data_to_rgba(px, pix_fmt)
+      # see https://github.com/d-theus/vncrec-ruby/blob/master/lib/vncrec/constants.rb
+      case pix_fmt
+      when 'bgra'
+        # convert 32bit BGRA -> 32bit RGBA
+        px = px.unpack("V*")
+        px.map! { |p| (p << 8) + 0xff }
+      when 'bgr8'
+        # convert 8bit BGR -> 32bit RGBA
+        px = px.unpack("C*")
+        px.map! do |p|
+          r = (p & 0b00000111)
+          g = (p & 0b00111000) >> 3
+          b = (p & 0b11000000) >> 6
+          ((r * 36) << 24) + ((g * 36) << 16) + ((b * 85) << 8) + 0xff
+        end
+      else
+        raise "unsupported pixel format #{@vnc_rec_pix_fmt[:string].inspect}"
+      end
     end
 
     # Set a way that server should use to represent pixel data
@@ -103,28 +127,25 @@ module Net::RFB
       end
     end
 
-    def save_screenshot(dest)
-      begin
-        require 'rmagick'
-      rescue LoadError
-        raise 'The "rmagick" gem required for using save screenshot feature, but not installed it.'
-      end
-
+    # save current screen pixel data as PNG image
+    # @param dest [String|IO] destination file path, or IO-object
+    def save_pixel_data_as_png(dest=nil)
       self.request_update_fb(wait_for_response: true)
 
-      px = self.pixel_data_16
-      raise 'Error in get_screen_pixel_data.' unless px
-      image = Magick::Image.new(@proxy.w, @proxy.h)
-      image.import_pixels(0, 0, @proxy.w, @proxy.h, 'BGRO', px)
+      image = ChunkyPNG::Image.new(@proxy.w, @proxy.h, rgba_pixel_data)
+
       if dest.is_a? IO
-        dest.write image.to_blob
+        # write to IO-object
+        image.write dest
       elsif dest.is_a?(String) || dest.is_a?(Pathname)
-        image.write dest.to_s
+        # write to file
+        image.save dest.to_s
+      elsif dest.nil?
+        # return binary data as string
+        image.to_blob
       else
         raise ArgumentError, "Unsupported destination type #{dest.inspect}"
       end
-    ensure
-      image.destroy! if image
     end
 
     private

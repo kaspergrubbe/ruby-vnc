@@ -31,6 +31,7 @@ Gem::Specification.new do |s|
   ]
 
   s.add_runtime_dependency 'vncrec', '~> 1.0.6'
+  s.add_runtime_dependency 'chunky_png', '~> 1.3.0'
 
   s.add_development_dependency 'rake', '~> 12.3'
   s.add_development_dependency 'rspec', '~> 3.7'

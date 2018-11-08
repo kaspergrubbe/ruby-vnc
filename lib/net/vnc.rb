@@ -250,10 +250,11 @@ module Net
       wait options
     end
 
-    # take screenshot to a file, or write to IO-object
+    # take screenshot as PNG image
+    # @param dest [String|IO] destination file path, or IO-object
     def take_screenshot(dest)
       fb = _load_frame_buffer  # on-demand loading
-      fb.save_screenshot dest
+      fb.save_pixel_data_as_png dest
     end
 
     def wait options={}
