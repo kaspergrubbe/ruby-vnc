@@ -1,12 +1,4 @@
-require 'thread'
-
-begin
-  require 'vncrec'
-  require 'vncrec/constants.rb'
-  require 'vncrec/rfb/proxy.rb'
-rescue LoadError
-  raise 'The "vncrec" gem required for using framebuffer feature, but not installed it.'
-end
+require 'vncrec'
 
 module Net::RFB
 
