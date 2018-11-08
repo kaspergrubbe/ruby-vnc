@@ -59,11 +59,11 @@ module Net::RFB
     # @return [Array<Integer>] array of 32bit pixel data
     def self.convert_raw_pixel_data_to_rgba(px, pix_fmt)
       # see https://github.com/d-theus/vncrec-ruby/blob/master/lib/vncrec/constants.rb
-      case pix_fmt
+      case pix_fmt.to_s
       when 'bgra'
         # convert 32bit BGRA -> 32bit RGBA
         px = px.unpack("V*")
-        px.map! { |p| (p << 8) + 0xff }
+        px.map! { |p| (p << 8) | 0xff }
       when 'bgr8'
         # convert 8bit BGR -> 32bit RGBA
         px = px.unpack("C*")
@@ -71,10 +71,10 @@ module Net::RFB
           r = (p & 0b00000111)
           g = (p & 0b00111000) >> 3
           b = (p & 0b11000000) >> 6
-          ((r * 36) << 24) + ((g * 36) << 16) + ((b * 85) << 8) + 0xff
+          ((r * 36) << 24) | ((g * 36) << 16) | ((b * 85) << 8) | 0xff
         end
       else
-        raise "unsupported pixel format #{@vnc_rec_pix_fmt[:string].inspect}"
+        raise "unknown pixel format #{pix_fmt.inspect}"
       end
     end
 
