@@ -82,6 +82,7 @@ module Net
       @display = display[1..-1].to_i
       @options = DEFAULT_OPTIONS.merge options
       @clipboard = nil
+      @fb = nil
       @pointer = PointerState.new self
       @mutex = Mutex.new
       connect
