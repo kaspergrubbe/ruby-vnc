@@ -43,4 +43,21 @@ RSpec.describe Net::VNC do
       expect { Net::VNC.open(WITH_AUTH_SERVER_DISPLAY) }.to raise_error(RuntimeError, 'Need to authenticate but no password given')
     end
   end
+
+  context 'screenshotting' do
+    it 'should allow you to take a screenshot with a IO-object' do
+      screenshotfile = File.new("out.png", "w")
+
+      begin
+        Net::VNC.open(NO_AUTH_SERVER_DISPLAY) do |vnc|
+          vnc.pointer_move(10, 15)
+          vnc.take_screenshot(screenshotfile)
+        end
+        verify_screenshot(screenshotfile)
+      ensure
+        screenshotfile.close
+        File.delete(screenshotfile)
+      end
+    end
+  end
 end
