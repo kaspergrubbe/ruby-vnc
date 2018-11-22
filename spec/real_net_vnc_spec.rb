@@ -45,6 +45,13 @@ RSpec.describe Net::VNC do
   end
 
   context 'screenshotting' do
+    def verify_screenshot(input)
+      image_size = ImageSize.path(input)
+      expect(image_size.format).to eq :png
+      expect(image_size.width).to eq 1366
+      expect(image_size.height).to eq 768
+    end
+
     it 'should allow you to take a screenshot with a path' do
       Tempfile.open('ruby-vnc-spec') do |screenshotfile|
         Net::VNC.open(NO_AUTH_SERVER_DISPLAY) do |vnc|
