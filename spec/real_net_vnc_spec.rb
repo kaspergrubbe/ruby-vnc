@@ -45,6 +45,20 @@ RSpec.describe Net::VNC do
   end
 
   context 'screenshotting' do
+    it 'should allow you to take a screenshot with a blob' do
+      Tempfile.open('ruby-vnc-spec-blob') do |screenshotfile|
+        vnc = Net::VNC.open(NO_AUTH_SERVER_DISPLAY)
+        begin
+          vnc.pointer_move(10, 15)
+          blob = vnc.take_screenshot(nil)
+          screenshotfile.write(blob)
+        ensure
+          vnc.close
+        end
+
+        verify_screenshot(screenshotfile.path)
+      end
+    end
     it 'should allow you to take a screenshot with a IO-object' do
       screenshotfile = File.new("out.png", "w")
 
