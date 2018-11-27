@@ -252,7 +252,9 @@ module Net
     end
 
     # take screenshot as PNG image
-    # @param dest [String|IO] destination file path, or IO-object
+    # @param dest [String|IO|nil] destination file path, or IO-object, or nil
+    # @return [String] PNG binary data as string when dest is null
+    #         [true]   else case
     def take_screenshot(dest=nil)
       fb = _load_frame_buffer  # on-demand loading
       fb.save_pixel_data_as_png dest

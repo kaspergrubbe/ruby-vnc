@@ -128,7 +128,9 @@ module Net::RFB
     end
 
     # save current screen pixel data as PNG image
-    # @param dest [String|IO] destination file path, or IO-object
+    # @param dest [String|IO|nil] destination file path, or IO-object, or nil
+    # @return [String] PNG binary data as string when dest is null
+    #         [true]   else case
     def save_pixel_data_as_png(dest=nil)
       self.request_update_fb(wait_for_response: true)
 
@@ -142,10 +144,11 @@ module Net::RFB
         image.save dest.to_s
       elsif dest.nil?
         # return binary data as string
-        image.to_blob
+        return image.to_blob
       else
         raise ArgumentError, "Unsupported destination type #{dest.inspect}"
       end
+      true
     end
 
     private
