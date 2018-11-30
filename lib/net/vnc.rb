@@ -61,7 +61,9 @@ module Net
     CHALLENGE_SIZE = 16
     DEFAULT_OPTIONS = {
       :shared => false,
-      :wait => 0.1
+      :wait => 0.1,
+      :pix_fmt => :BGRA,
+      :encoding => :RAW
     }
 
     keys_file = File.dirname(__FILE__) + '/../../data/keys.yaml'
@@ -80,6 +82,7 @@ module Net
       @display = display[1..-1].to_i
       @options = DEFAULT_OPTIONS.merge options
       @clipboard = nil
+      @fb = nil
       @pointer = PointerState.new self
       @mutex = Mutex.new
       connect
@@ -133,8 +136,8 @@ module Net
       socket.write((options[:shared] ? 1 : 0).chr)
 
       # ServerInitialisation
-      framebuffer_width  = socket.read(2).to_s.unpack('n')[0].to_i
-      framebuffer_height = socket.read(2).to_s.unpack('n')[0].to_i
+      @framebuffer_width  = socket.read(2).to_s.unpack('n')[0].to_i
+      @framebuffer_height = socket.read(2).to_s.unpack('n')[0].to_i
 
       # TODO: parse this.
       pixel_format = socket.read(16)
@@ -248,6 +251,15 @@ module Net
       wait options
     end
 
+    # take screenshot as PNG image
+    # @param dest [String|IO|nil] destination file path, or IO-object, or nil
+    # @return [String] PNG binary data as string when dest is null
+    #         [true]   else case
+    def take_screenshot(dest=nil)
+      fb = _load_frame_buffer  # on-demand loading
+      fb.save_pixel_data_as_png dest
+    end
+
     def wait options={}
       sleep options[:wait] || @options[:wait]
     end
@@ -307,7 +319,13 @@ module Net
 
     def read_packet type
       case type
-      when 3 # ServerCutText
+      when 0 # ----------------------------------------------- FramebufferUpdate
+        @fb.handle_response type if @fb
+      when 1 # --------------------------------------------- SetColourMapEntries
+        @fb.handle_response type if @fb
+      when 2 # ------------------------------------------------------------ Bell
+        nil  # not support
+      when 3 # --------------------------------------------------- ServerCutText
         socket.read 3 # discard padding bytes
         len = socket.read(4).unpack('N')[0]
         @mutex.synchronize { @clipboard = socket.read len }
@@ -323,14 +341,23 @@ module Net
           break if @packet_reading_state != :loop
           next unless IO.select [socket], nil, nil, 2
           type = socket.read(1)[0]
-          read_packet type
+          read_packet type.ord
         rescue
-          warn "exception in packet_reading_thread: #{$!.class}:#{$!}"
+          warn "exception in packet_reading_thread: #{$!.class}:#{$!}\n#{$!.backtrace}"
           break
         end
       end
       @packet_reading_state = nil
     end
+
+    def _load_frame_buffer
+      unless @fb
+        require 'net/rfb/frame_buffer'
+
+        @fb = Net::RFB::FrameBuffer.new @socket, @framebuffer_width, @framebuffer_height, @options[:pix_fmt], @options[:encoding]
+        @fb.send_initial_data
+      end
+      @fb
+    end
   end
 end
-

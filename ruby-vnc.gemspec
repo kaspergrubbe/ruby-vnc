@@ -30,7 +30,11 @@ Gem::Specification.new do |s|
     '--tab-width', '2'
   ]
 
+  s.add_runtime_dependency 'vncrec', '~> 1.0.6'
+  s.add_runtime_dependency 'chunky_png', '~> 1.3.0'
+
   s.add_development_dependency 'rake', '~> 12.3'
   s.add_development_dependency 'rspec', '~> 3.7'
   s.add_development_dependency 'simplecov', '~> 0.16'
+  s.add_development_dependency 'image_size', '~> 2.0'
 end
