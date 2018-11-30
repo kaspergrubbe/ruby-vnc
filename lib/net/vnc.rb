@@ -279,6 +279,17 @@ module Net
       end
     end
 
+    def clipboard= text
+      text = text.to_s.gsub(/\R/, "\n") # eol of ClientCutText's text is LF
+      byte_size = text.to_s.bytes.size
+      packet = 0.chr * (8 + byte_size)
+      packet[0] = 6.chr # message-type: 6 (ClientCutText)
+      packet[4, 4] = [byte_size].pack('N') # length
+      packet[8, byte_size] = text
+      socket.write(packet)
+      @clipboard = text
+    end
+
     private
 
     def read_packet type
