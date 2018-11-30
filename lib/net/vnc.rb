@@ -263,6 +263,19 @@ module Net
       socket.close
     end
 
+    def reconnect
+      60.times do
+        if @packet_reading_state.nil?
+          connect
+          @packet_reading_thread = Thread.new { packet_reading_thread }
+          return true
+        end
+        sleep 0.5
+      end
+      warn 'reconnect failed because packet reading state had not been stopped for 30 seconds.'
+      false
+    end
+
     def clipboard
       if block_given?
         @clipboard = nil
