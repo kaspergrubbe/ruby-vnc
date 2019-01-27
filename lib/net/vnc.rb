@@ -330,7 +330,7 @@ module Net
         len = socket.read(4).unpack('N')[0]
         @mutex.synchronize { @clipboard = socket.read len }
       else
-        raise NotImplementedError, 'unhandled server packet type - %d' % type
+        warn 'unhandled server packet type - %d' % type
       end
     end
 
