@@ -22,7 +22,6 @@ Gem::Specification.new do |s|
   # is there an rspec equivalent?
   #s.test_files = FileList['test/test_*.rb']
 
-  s.has_rdoc = true
   s.extra_rdoc_files = ['README.rdoc', 'Changelog.rdoc']
   s.rdoc_options += [
     '--main', 'README.rdoc',
