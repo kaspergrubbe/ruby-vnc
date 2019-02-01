@@ -72,7 +72,7 @@ module Net
       super or raise ArgumentError.new('Invalid key name - %s' % key)
     end
 
-    attr_reader :server, :display, :options, :socket, :pointer
+    attr_reader :server, :display, :options, :socket, :pointer, :desktop_name
 
     def initialize display=':0', options={}
       @server = 'localhost'
@@ -80,6 +80,7 @@ module Net
         @server, display = $1, $2
       end
       @display = display[1..-1].to_i
+      @desktop_name = nil
       @options = DEFAULT_OPTIONS.merge options
       @clipboard = nil
       @fb = nil
@@ -144,7 +145,7 @@ module Net
 
       # read the name in byte chunks of 20
       name_length = socket.read(4).to_s.unpack('N')[0]
-      hostname = [].tap do |it|
+      @desktop_name = [].tap do |it|
         while name_length > 0
           len = [20, name_length].min
           it << socket.read(len)
