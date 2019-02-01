@@ -192,8 +192,12 @@ module Net
           raise ArgumentError, 'can only get key_code of single character strings'
         end
         which[0].ord
-      else
+      elsif Symbol === which
         KEY_MAP[which]
+      elsif Integer === which
+        which
+      else
+        raise ArgumentError, "unsupported key value: #{which.inspect}"
       end
     end
     private :get_key_code
