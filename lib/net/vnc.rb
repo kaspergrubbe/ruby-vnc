@@ -186,15 +186,16 @@ module Net
       end
     end
 
-    def get_key_code which
-      if String === which
+    def get_key_code(which)
+      case which
+      when String
         if which.length != 1
           raise ArgumentError, 'can only get key_code of single character strings'
         end
         which[0].ord
-      elsif Symbol === which
+      when Symbol
         KEY_MAP[which]
-      elsif Integer === which
+      when Integer
         which
       else
         raise ArgumentError, "unsupported key value: #{which.inspect}"
