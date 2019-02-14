@@ -1,11 +1,11 @@
-Kernel.load File.dirname(__FILE__) + '/lib/net/vnc/version.rb'
+require File.expand_path('../lib/net/vnc/version.rb', __FILE__)
 
-PKG_NAME = 'ruby-vnc'
-PKG_VERSION = Net::VNC::VERSION
+pkg_name = 'ruby-vnc'
+pkg_version = Net::VNC::VERSION
 
 Gem::Specification.new do |s|
-  s.name = PKG_NAME
-  s.version = PKG_VERSION
+  s.name = pkg_name
+  s.version = pkg_version
   s.summary = 'Ruby VNC library.'
   s.description = 'A library which implements the client VNC protocol to control VNC servers.'
   s.authors = ['Charles Lowe']
@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files = ['README.rdoc', 'Changelog.rdoc']
   s.rdoc_options += [
     '--main', 'README.rdoc',
-    '--title', "#{PKG_NAME} documentation",
+    '--title', "#{pkg_name} documentation",
     '--tab-width', '2'
   ]
 
