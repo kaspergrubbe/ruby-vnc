@@ -152,6 +152,8 @@ module Net
           name_length -= len
         end
       end.join
+
+      _load_frame_buffer
     end
 
     # this types +text+ on the server
