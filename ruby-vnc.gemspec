@@ -12,7 +12,6 @@ Gem::Specification.new do |s|
   s.email = 'aquasync@gmail.com'
   s.homepage = 'https://github.com/aquasync/ruby-vnc'
   s.license = 'MIT'
-  s.rubyforge_project = 'ruby-vnc'
 
   # none yet
   #s.executables = ['oletool']
