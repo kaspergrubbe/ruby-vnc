@@ -142,7 +142,7 @@ module Net
       @framebuffer_height = socket.read(2).to_s.unpack1('n').to_i
 
       # TODO: parse this.
-      pixel_format = socket.read(16)
+      _pixel_format = socket.read(16)
 
       # read the name in byte chunks of 20
       name_length = socket.read(4).to_s.unpack1('N')
