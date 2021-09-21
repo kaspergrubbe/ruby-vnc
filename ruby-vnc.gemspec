@@ -15,6 +15,8 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/kaspergrubbe/ruby-vnc'
   s.license = 'MIT'
 
+  s.required_ruby_version = '>= 2.5.0'
+
   s.files  = ['Rakefile', 'README.rdoc', 'COPYING', 'Changelog.rdoc', 'data/keys.yaml']
   s.files += Dir.glob('lib/**/*.rb')
   s.files += Dir.glob('spec/*_spec.rb')
