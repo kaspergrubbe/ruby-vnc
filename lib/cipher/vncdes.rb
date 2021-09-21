@@ -39,7 +39,7 @@ module Cipher
       chunks = [challenge.slice(0, 8), challenge.slice(8, 8)]
       cipher = OpenSSL::Cipher::DES.new(:ECB)
       cipher.encrypt
-      cipher.key = self.key
+      cipher.key = key
       chunks.reduce('') { |a, e| cipher.reset; a << cipher.update(e) }.force_encoding('UTF-8')
     end
 
@@ -52,4 +52,3 @@ module Cipher
     end
   end
 end
-

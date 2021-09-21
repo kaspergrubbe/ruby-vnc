@@ -2,13 +2,11 @@ require 'vncrec'
 require 'chunky_png'
 
 module Net::RFB
-
   # Manage FrameBuffer pixel data for RFB protocol
   # This is a little wrapper for the `Proxy` class in vncrec-ruby https://github.com/d-theus/vncrec-ruby
   class FrameBuffer
     class VNCRecAuthStub
-      def initialize(io, *options)
-      end
+      def initialize(io, *options); end
     end
 
     # @param io  [IO, #read, #sysread, #syswrite, #read_nonblock] string stream from VNC server.
@@ -16,7 +14,7 @@ module Net::RFB
     # @param h   [Integer] height of the screen area
     # @param bpp [Symbol] bits per pixel (BGR8 or BGRA)
     # @param encodings [Array<Symbol>] encoding (RAW or HEXTILE or ZRLE) default: RAW
-    def initialize(io, w, h, bpp, encodings=nil)
+    def initialize(io, w, h, bpp, encodings = nil)
       @cb_mutex = Monitor.new
       @cb_cv = @cb_mutex.new_cond
 
@@ -30,15 +28,13 @@ module Net::RFB
 
     def send_initial_data
       # set encoding
-      unless self.set_encodings @encodings
-        raise 'Error while setting encoding'
-      end
+      raise 'Error while setting encoding' unless set_encodings @encodings
 
       # set pixel format
-      self.set_pixel_format @vnc_rec_pix_fmt
+      set_pixel_format @vnc_rec_pix_fmt
 
       # request all pixel data
-      self.request_update_fb incremental: false
+      request_update_fb incremental: false
     end
 
     # raw pixel data of screen
@@ -48,8 +44,9 @@ module Net::RFB
 
     # 32bit RGBA pixel data of screen
     def rgba_pixel_data
-      px = self.pixel_data
+      px = pixel_data
       raise 'Error in get raw pixel_data.' unless px
+
       self.class.convert_raw_pixel_data_to_rgba px, @vnc_rec_pix_fmt[:string]
     end
 
@@ -62,11 +59,11 @@ module Net::RFB
       case pix_fmt.to_s
       when 'bgra'
         # convert 32bit BGRA -> 32bit RGBA
-        px = px.unpack("V*")
+        px = px.unpack('V*')
         px.map! { |p| (p << 8) | 0xff }
       when 'bgr8'
         # convert 8bit BGR -> 32bit RGBA
-        px = px.unpack("C*")
+        px = px.unpack('C*')
         px.map! do |p|
           r = (p & 0b00000111)
           g = (p & 0b00111000) >> 3
@@ -92,7 +89,7 @@ module Net::RFB
     #  * :HEXTILE
     #  * :ZRLE
     def set_encodings(*encodings)
-      @proxy.set_encodings [encodings].flatten.compact.map{|sym| VNCRec::const_get "ENC_#{sym}"}
+      @proxy.set_encodings [encodings].flatten.compact.map { |sym| VNCRec.const_get "ENC_#{sym}" }
     end
 
     # Send request for update framebuffer.
@@ -106,11 +103,9 @@ module Net::RFB
     # @param wait_for_response [Boolean] if true, wait for a FramebufferUpdate response
     def request_update_fb(incremental: true, x: nil, y: nil, w: nil, h: nil, wait_for_response: false)
       @cb_mutex.synchronize do
-        @proxy.fb_update_request incremental ? 1 : 0, x||0, y||0, w||@proxy.w, h||@proxy.h
+        @proxy.fb_update_request incremental ? 1 : 0, x || 0, y || 0, w || @proxy.w, h || @proxy.h
 
-        if wait_for_response
-          @cb_cv.wait
-        end
+        @cb_cv.wait if wait_for_response
       end
     end
 
@@ -121,9 +116,9 @@ module Net::RFB
         @cb_mutex.synchronize do
           @cb_cv.broadcast
         end
-        return ret
+        ret
       when 1 # --------------------------------------------- SetColourMapEntries
-        return handle_set_colormap_entries
+        handle_set_colormap_entries
       end
     end
 
@@ -131,8 +126,8 @@ module Net::RFB
     # @param dest [String|IO|nil] destination file path, or IO-object, or nil
     # @return [String] PNG binary data as string when dest is null
     #         [true]   else case
-    def save_pixel_data_as_png(dest=nil)
-      self.request_update_fb(wait_for_response: true)
+    def save_pixel_data_as_png(dest = nil)
+      request_update_fb(wait_for_response: true)
 
       image = ChunkyPNG::Image.new(@proxy.w, @proxy.h, rgba_pixel_data)
 
@@ -157,8 +152,13 @@ module Net::RFB
     # @param pix_fmt [Symbol|String] bits per pixel (BGR8 or BGRA)
     def convert_to_vnc_rec_pix_fmt(pix_fmt)
       return pix_fmt if pix_fmt.is_a?(Hash)
+
       pf = pix_fmt.to_s.prepend('PIX_FMT_').upcase.to_sym
-      raise ArgumentError, "Unsupported pixel_format '#{pix_fmt}', now supported values are: BGR8, BGRA" unless VNCRec.const_defined? pf
+      unless VNCRec.const_defined? pf
+        raise ArgumentError,
+              "Unsupported pixel_format '#{pix_fmt}', now supported values are: BGR8, BGRA"
+      end
+
       VNCRec.const_get(pf)
     end
 

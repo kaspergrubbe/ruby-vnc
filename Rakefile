@@ -1,7 +1,7 @@
-require "bundler/gem_tasks"
+require 'bundler/gem_tasks'
 require 'rake'
 
-task :default => :spec
+task default: :spec
 
 desc 'Run all specs'
 begin
@@ -36,4 +36,3 @@ Gem::PackageTask.new(spec) do |pkg|
   pkg.need_zip = false
   pkg.package_dir = 'build'
 end
-
