@@ -12,7 +12,7 @@ Gem::Specification.new do |s|
   s.description = 'A library which implements the client VNC protocol to control VNC servers.'
   s.authors = ['Charles Lowe']
   s.email = 'aquasync@gmail.com'
-  s.homepage = 'https://github.com/aquasync/ruby-vnc'
+  s.homepage = 'https://github.com/kaspergrubbe/ruby-vnc'
   s.license = 'MIT'
 
   s.files  = ['Rakefile', 'README.rdoc', 'COPYING', 'Changelog.rdoc', 'data/keys.yaml']
