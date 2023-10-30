@@ -15,7 +15,7 @@ Gem::Specification.new do |s|
   s.homepage = 'https://github.com/kaspergrubbe/ruby-vnc'
   s.license = 'MIT'
 
-  s.required_ruby_version = '>= 2.5.0'
+  s.required_ruby_version = '>= 3.0.0'
 
   s.files  = ['Rakefile', 'README.rdoc', 'COPYING', 'Changelog.rdoc', 'data/keys.yaml']
   s.files += Dir.glob('lib/**/*.rb')
@@ -28,7 +28,7 @@ Gem::Specification.new do |s|
     '--tab-width', '2'
   ]
 
-  s.add_runtime_dependency 'chunky_png', '~> 1.3.0'
+  s.add_runtime_dependency 'chunky_png', '~> 1.4.0'
   s.add_runtime_dependency 'vncrec', '~> 1.0.6'
 
   s.add_development_dependency 'image_size', '~> 2.0'

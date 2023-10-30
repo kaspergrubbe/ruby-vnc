@@ -7,10 +7,3 @@ services:
     environment:
       - RESOLUTION=1366x768
 
-  ubuntuvnc-withpass:
-    image: dorowu/ubuntu-desktop-lxde-vnc
-    ports:
-      - "5902:5900"
-    environment:
-      - VNC_PASSWORD=matzisnicesowearenice
-      - RESOLUTION=1366x768

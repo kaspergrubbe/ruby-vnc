@@ -2,7 +2,6 @@ require 'spec_helper'
 require 'net/vnc'
 
 NO_AUTH_SERVER_DISPLAY   = ':1'.freeze
-WITH_AUTH_SERVER_DISPLAY = ':2'.freeze
 
 RSpec.describe Net::VNC do
   context 'no auth' do
@@ -23,29 +22,6 @@ RSpec.describe Net::VNC do
         vnc.pointer_move(10, 15)
         expect(vnc.pointer.x).to eq 10
       end
-    end
-  end
-
-  context 'with auth' do
-    it 'should connect with a password' do
-      Net::VNC.open(WITH_AUTH_SERVER_DISPLAY, password: 'matzisnicesowearenice') do |vnc|
-        vnc.pointer_move(10, 15)
-        expect(vnc.pointer.x).to eq 10
-        expect(vnc.pointer.y).to eq 15
-      end
-    end
-
-    it 'should give error with a wrong password' do
-      expect do
-        Net::VNC.open(WITH_AUTH_SERVER_DISPLAY,
-                      password: 'wrongPasssword')
-      end.to raise_error(RuntimeError, 'Unable to authenticate - 1')
-    end
-
-    it 'should give error with no password' do
-      expect do
-        Net::VNC.open(WITH_AUTH_SERVER_DISPLAY)
-      end.to raise_error(RuntimeError, 'Need to authenticate but no password given')
     end
   end
 

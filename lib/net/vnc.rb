@@ -1,6 +1,5 @@
 require 'socket'
 require 'yaml'
-require 'cipher/vncdes'
 require 'net/vnc/version'
 
 module Net
@@ -13,7 +12,7 @@ module Net
   #   # launch xclock on localhost. note that there is an xterm in the top-left
   #
   #   require 'net/vnc'
-  #   Net::VNC.open 'localhost:0', :shared => true, :password => 'mypass' do |vnc|
+  #   Net::VNC.open 'localhost:0', :shared => true do |vnc|
   #     vnc.pointer_move 10, 10
   #     vnc.type 'xclock'
   #     vnc.key_press :return
@@ -124,12 +123,7 @@ module Net
       when 1
         # ok...
       when 2
-        password = @options[:password] or raise 'Need to authenticate but no password given'
-        challenge = socket.read CHALLENGE_SIZE
-        response = Cipher::VNCDES.new(password).encrypt(challenge)
-        socket.write response
-        ok = socket.read(4).to_s.unpack1('N')
-        raise 'Unable to authenticate - %p' % ok unless ok == 0
+        raise 'Unable to authenticate - DES no longer supported'
       else
         raise 'Unknown authentication scheme - %d' % auth
       end
